@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="space-y-4">
+    @php($selectedForm = $forms->firstWhere('id', (int) request('form_id')))
     <x-page-header title="Patient Responses" subtitle="Responses submitted through your assigned forms" />
 
     <div class="card p-4">
@@ -31,6 +32,17 @@
             </a>
             @endif
         </form>
+        @if($selectedForm)
+        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-theme">
+            <span class="text-xs text-theme-muted mr-auto">Export {{ $selectedForm->title }} responses</span>
+            <a href="{{ route('doctor.forms.responses.export.pdf', $selectedForm) }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+            <a href="{{ route('doctor.forms.responses.export', $selectedForm) }}" class="btn btn-success btn-sm">
+                <i class="fas fa-file-excel"></i> Excel (CSV)
+            </a>
+        </div>
+        @endif
     </div>
 
     <div class="card overflow-hidden">

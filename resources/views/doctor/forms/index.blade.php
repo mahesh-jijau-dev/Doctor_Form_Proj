@@ -33,7 +33,7 @@
         <div class="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
             <div class="flex items-start justify-between">
                 <div class="w-10 h-10 rounded-xl bg-theme-surface-2 flex items-center justify-center">
-                    <i class="fas fa-file-alt text-theme-primary text-lg"></i>
+                    <i class="fas fa-file-lines text-theme-primary text-lg"></i>
                 </div>
                 <x-badge :type="$assignment->form->status === 'published' ? 'success' : 'muted'">
                     {{ ucfirst($assignment->form->status) }}
@@ -52,11 +52,25 @@
                 <span><i class="fas fa-calendar mr-1"></i>Assigned {{ $assignment->created_at->format('M d, Y') }}</span>
             </div>
 
-            <div class="flex gap-2 pt-1 border-t border-theme">
+            <div class="flex flex-wrap gap-2 pt-1 border-t border-theme">
                 <a href="{{ route('doctor.forms.show', $assignment->form) }}"
                    class="btn btn-sm btn-primary flex-1 justify-center">
                     <i class="fas fa-eye"></i> View Form
                 </a>
+                @if($assignment->form->status === 'published')
+                <div x-data="{ copied: false, async copyLink() {
+                    try { await navigator.clipboard.writeText('{{ route('forms.public.show', $assignment->form) }}'); this.copied = true; setTimeout(() => this.copied = false, 1800); }
+                    catch (error) { window.prompt('Copy this public form link:', '{{ route('forms.public.show', $assignment->form) }}'); }
+                }}">
+                    <button type="button" @click="copyLink()" class="btn btn-sm btn-secondary" title="Copy public form link">
+                        <i class="fas" :class="copied ? 'fa-check' : 'fa-link'"></i>
+                    </button>
+                </div>
+                <a href="{{ route('forms.public.show', $assignment->form) }}" target="_blank" rel="noopener"
+                   class="btn btn-sm btn-secondary" title="Open public form">
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+                @endif
                 <a href="{{ route('doctor.responses.index', ['form_id' => $assignment->form->id]) }}"
                    class="btn btn-sm btn-secondary" title="View Responses">
                     <i class="fas fa-inbox"></i>

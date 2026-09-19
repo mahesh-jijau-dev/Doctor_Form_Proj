@@ -1,16 +1,23 @@
 @props(['title', 'value', 'icon', 'color' => 'primary', 'subtitle' => null, 'iconBg' => null])
-<div class="card p-5">
+@php
+    $statColors = [
+        'primary' => '15 118 110',
+        'secondary' => '79 70 229',
+        'success' => '16 185 129',
+        'warning' => '245 158 11',
+    ];
+@endphp
+<div class="card dashboard-stat-card p-5" style="--stat-color: {{ $statColors[$color] ?? $statColors['primary'] }}">
     <div class="flex items-start justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-widest text-theme-muted mb-1">{{ $title }}</p>
-            <p class="text-3xl font-bold text-theme-text">{{ $value }}</p>
+            <p class="dashboard-stat-value text-3xl font-bold text-theme-text mt-2">{{ $value }}</p>
             @if($subtitle)
                 <p class="text-xs text-theme-muted mt-1">{{ $subtitle }}</p>
             @endif
         </div>
-        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0
-                    {{ $iconBg ?? 'bg-theme-primary' }} bg-opacity-15">
-            <i class="fas {{ $icon }} text-theme-primary text-lg"></i>
+        <div class="dashboard-stat-icon flex-shrink-0">
+            <i class="fas {{ $icon }} text-lg" aria-hidden="true"></i>
         </div>
     </div>
 </div>

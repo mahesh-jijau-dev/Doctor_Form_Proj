@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Form;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -31,5 +32,16 @@ class ExportService
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportResponsesPdf(Form $form, array $exportData)
+    {
+        $filename = 'responses_' . $form->id . '_' . now()->format('Ymd_His') . '.pdf';
+
+        return Pdf::loadView('exports.responses-pdf', [
+            'form' => $form,
+            'exportData' => $exportData,
+            'generatedAt' => now(),
+        ])->setPaper('a4', 'landscape')->download($filename);
     }
 }

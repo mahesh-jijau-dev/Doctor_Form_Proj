@@ -62,6 +62,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/responses/{response}', [Admin\ResponseController::class, 'show'])->name('responses.show');
         Route::delete('/responses/{response}', [Admin\ResponseController::class, 'destroy'])->name('responses.destroy');
         Route::get('/forms/{form}/responses/export', [Admin\ResponseController::class, 'export'])->name('forms.responses.export');
+        Route::get('/forms/{form}/responses/export/pdf', [Admin\ResponseController::class, 'exportPdf'])->name('forms.responses.export.pdf');
     });
 
 // Doctor routes
@@ -77,4 +78,5 @@ Route::middleware(['auth', 'doctor.role'])
         Route::get('/responses', [Doctor\ResponseController::class, 'index'])->name('responses.index');
         Route::get('/responses/{response}', [Doctor\ResponseController::class, 'show'])->name('responses.show');
         Route::get('/forms/{form}/responses/export', [Doctor\ResponseController::class, 'export'])->name('forms.responses.export');
+        Route::get('/forms/{form}/responses/export/pdf', [Doctor\ResponseController::class, 'exportPdf'])->name('forms.responses.export.pdf');
     });

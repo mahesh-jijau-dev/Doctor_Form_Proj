@@ -10,17 +10,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="bg-theme-bg text-theme-text transition-theme"
+<body class="bg-theme-bg text-theme-text transition-theme app-body"
       x-data="{ sidebarOpen: window.innerWidth > 1024 }">
 
-    <div class="app-shell flex min-h-screen">
+    <div class="app-shell flex">
         <!-- Sidebar -->
-        <aside class="bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300"
+        <aside class="app-sidebar bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300"
                :class="sidebarOpen ? 'w-64 app-sidebar-open' : 'w-0 overflow-hidden app-sidebar-closed'">
             <!-- Logo -->
             <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
                 <div class="w-8 h-8 bg-theme-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-stethoscope text-white text-sm"></i>
+                    <i class="fas fa-heart-pulse text-white text-sm"></i>
                 </div>
                 <span class="text-white font-bold text-lg tracking-tight">MediForm</span>
             </div>
@@ -35,14 +35,14 @@
                 </a>
                 <a href="{{ route('admin.doctors.index') }}"
                    class="sidebar-item {{ request()->routeIs('admin.doctors*') ? 'active' : '' }}">
-                    <i class="fas fa-user-md icon"></i>
+                    <i class="fas fa-user-doctor icon"></i>
                     <span>Doctors</span>
                 </a>
 
                 <p class="text-xs font-semibold text-white/30 uppercase tracking-widest px-3 mt-4 mb-2">Forms</p>
                 <a href="{{ route('admin.forms.index') }}"
                    class="sidebar-item {{ request()->routeIs('admin.forms.index') || (request()->routeIs('admin.forms*') && !request()->routeIs('admin.forms.create')) ? 'active' : '' }}">
-                    <i class="fas fa-list-alt icon"></i>
+                    <i class="fas fa-list-check icon"></i>
                     <span>All Forms</span>
                 </a>
                 <a href="{{ route('admin.forms.create') }}"

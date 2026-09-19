@@ -4,21 +4,40 @@
 
 @section('content')
 <div class="space-y-6">
+    <div class="dashboard-hero dashboard-hero-pattern rounded-xl px-6 py-5 text-white shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm text-white/70">Good morning, {{ auth()->user()->name }}.</p>
+                <h2 class="text-2xl font-bold tracking-tight mt-1">Here's your practice overview.</h2>
+                <p class="text-sm text-white/75 mt-2">Monitor doctors, forms and patient responses from one place.</p>
+            </div>
+            <div class="hidden sm:flex w-12 h-12 rounded-xl bg-white/15 items-center justify-center">
+                <i class="fas fa-chart-line text-xl" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <x-stat-card title="Total Doctors" :value="$stats['total_doctors']" icon="fa-user-md"
+        <x-stat-card title="Total Doctors" :value="$stats['total_doctors']" icon="fa-user-doctor" color="primary"
                      :subtitle="$stats['active_doctors'] . ' active'" />
-        <x-stat-card title="Total Forms" :value="$stats['total_forms']" icon="fa-file-alt"
+        <x-stat-card title="Total Forms" :value="$stats['total_forms']" icon="fa-file-lines" color="secondary"
                      :subtitle="$stats['published_forms'] . ' published'" />
-        <x-stat-card title="Total Responses" :value="number_format($stats['total_responses'])" icon="fa-inbox"
+        <x-stat-card title="Total Responses" :value="number_format($stats['total_responses'])" icon="fa-inbox" color="success"
                      :subtitle="$stats['this_month_responses'] . ' this month'" />
-        <x-stat-card title="Today's Responses" :value="$stats['today_responses']" icon="fa-calendar-check" />
+        <x-stat-card title="Today's Responses" :value="$stats['today_responses']" icon="fa-calendar-check" color="warning" />
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <!-- Chart -->
         <div class="xl:col-span-2 card p-5">
-            <h3 class="text-sm font-semibold text-theme-text mb-4">Responses — Last 7 Days</h3>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-theme-text">Responses — Last 7 Days</h3>
+                    <p class="text-xs text-theme-muted mt-1">Daily submissions across all forms</p>
+                </div>
+                <span class="badge badge-primary"><i class="fas fa-chart-column mr-1"></i>Overview</span>
+            </div>
             <div id="responseChart" style="height:200px"></div>
         </div>
 
@@ -28,7 +47,7 @@
             @forelse($topForms as $form)
             <div class="flex items-center gap-3 py-2.5 border-b border-theme last:border-0">
                 <div class="w-8 h-8 rounded-lg bg-theme-surface-2 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-file-alt text-theme-muted text-xs"></i>
+                    <i class="fas fa-file-lines text-theme-primary text-xs"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-theme-text truncate">{{ $form->title }}</p>
@@ -55,7 +74,7 @@
                 @forelse($recentResponses as $response)
                 <div class="flex items-center gap-3 px-5 py-3">
                     <div class="w-8 h-8 rounded-full bg-theme-surface-2 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user text-theme-muted text-xs"></i>
+                        <i class="fas fa-user text-theme-primary text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-theme-text truncate">{{ $response->submitted_by_name ?? 'Anonymous' }}</p>
@@ -80,7 +99,7 @@
                 @forelse($recentActivity as $log)
                 <div class="flex items-start gap-3 px-5 py-3">
                     <div class="w-7 h-7 rounded-full bg-theme-surface-2 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fas fa-clock text-theme-muted text-xs"></i>
+                        <i class="fas fa-clock text-theme-primary text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-theme-text">{{ $log->description ?? $log->action }}</p>
@@ -103,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const values = @json($chartValues);
     const isDark = document.documentElement.classList.contains('dark');
     const textColor = isDark ? '#94a3b8' : '#64748b';
+    const primaryColor = isDark ? '#14b8a6' : '#0f766e';
 
     const container = document.getElementById('responseChart');
     if (!container) return;
@@ -128,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const y = chartTop + chartHeight - barH;
 
         // Bar
-        ctx.fillStyle = 'rgba(99,102,241,0.85)';
+        ctx.fillStyle = primaryColor;
         ctx.beginPath();
         if (ctx.roundRect) {
             ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);

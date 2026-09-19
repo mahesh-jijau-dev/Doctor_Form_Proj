@@ -4,6 +4,9 @@
 
 @section('content')
 <div class="max-w-3xl space-y-4">
+    @php
+        $publicFormUrl = route('forms.public.show', $form);
+    @endphp
     <!-- Header -->
     <x-page-header :title="$form->title" subtitle="Read-only form structure preview">
         <x-slot:actions>
@@ -14,6 +17,20 @@
                class="btn btn-primary btn-sm">
                 <i class="fas fa-inbox"></i> Responses
             </a>
+            @if($form->status === 'published')
+            <div x-data="{ copied: false, async copyLink() {
+                try { await navigator.clipboard.writeText('{{ $publicFormUrl }}'); this.copied = true; setTimeout(() => this.copied = false, 1800); }
+                catch (error) { window.prompt('Copy this public form link:', '{{ $publicFormUrl }}'); }
+            }}">
+                <button type="button" @click="copyLink()" class="btn btn-secondary btn-sm" title="Copy public form link">
+                    <i class="fas" :class="copied ? 'fa-check' : 'fa-link'"></i>
+                    <span x-text="copied ? 'Copied' : 'Share form'"></span>
+                </button>
+            </div>
+            <a href="{{ $publicFormUrl }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
+            @endif
         </x-slot:actions>
     </x-page-header>
 

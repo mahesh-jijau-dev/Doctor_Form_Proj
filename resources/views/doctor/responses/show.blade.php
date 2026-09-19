@@ -3,51 +3,62 @@
 @section('page-title', 'Response Detail')
 
 @section('content')
-<div class="max-w-3xl space-y-4">
-    <x-page-header :title="$response->form?->title ?? 'Response'" subtitle="Submitted response details">
-        <x-slot:actions>
-            <a href="{{ route('doctor.responses.index') }}" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-        </x-slot:actions>
-    </x-page-header>
-
-    <!-- Meta info -->
-    <div class="card p-5">
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div>
-                <p class="text-xs text-theme-muted mb-0.5">Patient Name</p>
-                <p class="text-sm font-medium text-theme-text">{{ $response->submitted_by_name ?? 'Anonymous' }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-theme-muted mb-0.5">Email</p>
-                <p class="text-sm text-theme-text">{{ $response->submitted_by_email ?? '—' }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-theme-muted mb-0.5">Submitted At</p>
-                <p class="text-sm text-theme-text">{{ $response->submitted_at?->format('M d, Y H:i') ?? '—' }}</p>
+<div class="response-detail-shell">
+    <div class="response-detail-page">
+        <div class="response-detail-header">
+            <div class="response-detail-header-main">
+                <div>
+                    <p class="response-detail-label">Patient Response</p>
+                    <h2>{{ $response->form?->title ?? 'Response Detail' }}</h2>
+                </div>
+                <div class="response-detail-actions">
+                    <a href="{{ route('doctor.responses.index') }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    @if($response->form)
+                    <a href="{{ route('doctor.forms.responses.export.pdf', $response->form) }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                    <a href="{{ route('doctor.forms.responses.export', $response->form) }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
 
-        @if($response->form)
-        <div class="mt-4 pt-4 border-t border-theme flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs text-theme-muted">
-                <i class="fas fa-file-alt"></i>
-                <span>{{ $response->form->title }}</span>
+        <div class="response-detail-body">
+            <div class="response-meta-card">
+                <div class="response-meta-grid">
+                    <div class="response-meta-item">
+                        <span>Patient Name</span>
+                        <strong>{{ $response->submitted_by_name ?? 'Anonymous' }}</strong>
+                    </div>
+                    <div class="response-meta-item">
+                        <span>Email</span>
+                        <strong>{{ $response->submitted_by_email ?? '—' }}</strong>
+                    </div>
+                    <div class="response-meta-item">
+                        <span>Submitted At</span>
+                        <strong>{{ $response->submitted_at?->format('M d, Y H:i') ?? '—' }}</strong>
+                    </div>
+                </div>
+                @if($response->form)
+                <div class="response-meta-footer">
+                    <div class="response-form-badge">
+                        <i class="fas fa-file-lines"></i>
+                        <span>{{ $response->form->title }}</span>
+                    </div>
+                    <a href="{{ route('doctor.forms.show', $response->form) }}" class="response-link">View Form</a>
+                </div>
+                @endif
             </div>
-            <a href="{{ route('doctor.forms.show', $response->form) }}"
-               class="text-xs text-theme-primary hover:underline">View Form</a>
-        </div>
-        @endif
-    </div>
 
-    <!-- Response field values -->
-    <div class="card overflow-hidden">
-        <div class="px-5 py-4 border-b border-theme">
-            <h2 class="text-sm font-semibold text-theme-text flex items-center gap-2">
-                <i class="fas fa-list-check text-theme-primary"></i> Patient Answers
-            </h2>
-        </div>
+            <div class="response-values-card">
+                <div class="response-values-header">
+                    <h3><i class="fas fa-list-check"></i> Patient Answers</h3>
+                </div>
+                <div class="response-values-list">
 
         @forelse($response->values as $value)
         <div class="px-5 py-4 border-b border-theme last:border-0">
@@ -85,18 +96,20 @@
             <p class="text-sm text-theme-muted">No field values recorded for this response.</p>
         </div>
         @endforelse
-    </div>
+                </div>
+            </div>
+        </div>
 
-    <!-- Navigation -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('doctor.responses.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Back to Responses
-        </a>
-        @if($response->form)
-        <a href="{{ route('doctor.forms.show', $response->form) }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-file-alt"></i> View Form
-        </a>
-        @endif
+        <div class="response-detail-footer">
+            <a href="{{ route('doctor.responses.index') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Back to Responses
+            </a>
+            @if($response->form)
+            <a href="{{ route('doctor.forms.show', $response->form) }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-file-lines"></i> View Form
+            </a>
+            @endif
+        </div>
     </div>
 </div>
 @endsection

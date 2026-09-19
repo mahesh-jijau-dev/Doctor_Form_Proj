@@ -61,4 +61,11 @@ class ResponseController extends Controller
         $exportData = $this->responseService->getExportData($form, auth()->id());
         return $this->exportService->exportResponsesCsv($form, $exportData);
     }
+
+    public function exportPdf(Request $request, Form $form)
+    {
+        $this->authorize('view', $form);
+        $exportData = $this->responseService->getExportData($form, auth()->id());
+        return $this->exportService->exportResponsesPdf($form, $exportData);
+    }
 }

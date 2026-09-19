@@ -57,6 +57,12 @@ class ResponseController extends Controller
         return $this->exportService->exportResponsesCsv($form, $exportData);
     }
 
+    public function exportPdf(Request $request, Form $form)
+    {
+        $exportData = $this->responseService->getExportData($form);
+        return $this->exportService->exportResponsesPdf($form, $exportData);
+    }
+
     public function destroy(FormResponse $response)
     {
         $response->values()->delete();

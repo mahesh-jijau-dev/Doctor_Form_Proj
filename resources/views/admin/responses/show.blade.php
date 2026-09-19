@@ -17,7 +17,10 @@
                     </a>
                     @if($response->form)
                     <a href="{{ route('admin.forms.responses.export', $response->form_id) }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-download"></i> Export
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                    <a href="{{ route('admin.forms.responses.export.pdf', $response->form_id) }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-file-pdf"></i> PDF
                     </a>
                     @endif
                 </div>
