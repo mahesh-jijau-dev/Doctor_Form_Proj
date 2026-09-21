@@ -18,8 +18,13 @@ class ResponsePolicy
             return true;
         }
 
-        // Doctor can only view if the response is assigned to them
-        return $response->assigned_doctor_id === $user->id;
+        // Assignment grants access to all responses submitted for that form.
+        return $response->form()
+            ->whereHas('assignments', function ($query) use ($user) {
+                $query->where('doctor_id', $user->id)
+                    ->where('is_active', true);
+            })
+            ->exists();
     }
 
     public function export(User $user, FormResponse $response): bool

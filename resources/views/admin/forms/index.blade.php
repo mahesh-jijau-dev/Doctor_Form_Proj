@@ -28,7 +28,7 @@
 
     @if($forms->isEmpty())
     <div class="card">
-        <x-empty-state icon="fa-file-alt" title="No forms yet" subtitle="Create your first form to get started.">
+            <x-empty-state icon="fa-file-lines" title="No forms yet" subtitle="Create your first form to get started.">
             <x-slot:action>
                 <a href="{{ route('admin.forms.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Create Form
@@ -63,7 +63,7 @@
 
             <div class="flex items-center gap-4 text-xs text-theme-muted">
                 <span><i class="fas fa-inbox mr-1"></i>{{ $form->responses_count ?? 0 }} responses</span>
-                <span><i class="fas fa-user-md mr-1"></i>{{ $form->assignments_count ?? 0 }} doctors</span>
+                <span><i class="fas fa-user-doctor mr-1"></i>{{ $form->assignments_count ?? 0 }} doctors</span>
             </div>
 
             <div class="flex flex-wrap gap-1.5 pt-1 border-t border-theme">

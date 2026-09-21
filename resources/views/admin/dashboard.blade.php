@@ -65,16 +65,19 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <!-- Recent Responses -->
-        <div class="card">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-theme">
-                <h3 class="text-sm font-semibold text-theme-text">Recent Responses</h3>
+        <div class="card dashboard-feed-card">
+            <div class="dashboard-feed-header flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-theme-text">Recent Responses</h3>
+                    <p class="text-xs text-theme-muted mt-1">Latest patient submissions</p>
+                </div>
                 <a href="{{ route('admin.responses.index') }}" class="text-xs text-theme-primary hover:underline">View all</a>
             </div>
-            <div class="divide-y divide-theme">
+            <div class="dashboard-feed-list">
                 @forelse($recentResponses as $response)
-                <div class="flex items-center gap-3 px-5 py-3">
-                    <div class="w-8 h-8 rounded-full bg-theme-surface-2 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user text-theme-primary text-xs"></i>
+                <div class="dashboard-feed-row flex items-center gap-3">
+                    <div class="dashboard-feed-icon">
+                        <i class="fas fa-user text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-theme-text truncate">{{ $response->submitted_by_name ?? 'Anonymous' }}</p>
@@ -91,15 +94,16 @@
         </div>
 
         <!-- Recent Activity -->
-        <div class="card">
-            <div class="px-5 py-4 border-b border-theme">
+        <div class="card dashboard-feed-card">
+            <div class="dashboard-feed-header">
                 <h3 class="text-sm font-semibold text-theme-text">Recent Activity</h3>
+                <p class="text-xs text-theme-muted mt-1">System updates and form events</p>
             </div>
-            <div class="divide-y divide-theme">
+            <div class="dashboard-feed-list">
                 @forelse($recentActivity as $log)
-                <div class="flex items-start gap-3 px-5 py-3">
-                    <div class="w-7 h-7 rounded-full bg-theme-surface-2 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fas fa-clock text-theme-primary text-xs"></i>
+                <div class="dashboard-feed-row flex items-start gap-3">
+                    <div class="dashboard-feed-icon mt-0.5">
+                        <i class="fas fa-clock text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-theme-text">{{ $log->description ?? $log->action }}</p>
@@ -122,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const values = @json($chartValues);
     const isDark = document.documentElement.classList.contains('dark');
     const textColor = isDark ? '#94a3b8' : '#64748b';
-    const primaryColor = isDark ? '#14b8a6' : '#0f766e';
+    const primaryColor = isDark ? '#8b5cf6' : '#6d4aff';
 
     const container = document.getElementById('responseChart');
     if (!container) return;

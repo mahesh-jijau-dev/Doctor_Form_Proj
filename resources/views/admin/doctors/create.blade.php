@@ -3,14 +3,14 @@
 @section('page-title', 'Add Doctor')
 
 @section('content')
-<div class="max-w-2xl">
+<div class="doctor-create-page max-w-5xl mx-auto">
     <x-page-header title="Add New Doctor" subtitle="Create a doctor account and profile" />
 
-    <div class="card p-6">
-        <form method="POST" action="{{ route('admin.doctors.store') }}" class="space-y-5">
+    <div class="doctor-create-card card p-6">
+        <form method="POST" action="{{ route('admin.doctors.store') }}" class="space-y-4">
             @csrf
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-3">
                 <div>
                     <label class="block text-sm font-medium text-theme-text mb-1.5">
                         Full Name <span class="text-red-500">*</span>
@@ -92,7 +92,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-theme-text mb-1.5">Bio</label>
-                <textarea name="bio" rows="3" class="input-base"
+                <textarea name="bio" rows="2" class="input-base"
                           placeholder="Brief professional bio...">{{ old('bio') }}</textarea>
             </div>
 

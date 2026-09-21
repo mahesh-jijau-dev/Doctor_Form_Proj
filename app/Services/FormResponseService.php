@@ -7,6 +7,8 @@ use App\Models\FormResponse;
 use App\Models\FormResponseValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class FormResponseService
 {
@@ -47,10 +49,21 @@ class FormResponseService
                 ];
 
                 if ($field->type === 'file' && $request->hasFile($fieldKey)) {
-                    $file                              = $request->file($fieldKey);
-                    $path                              = $file->store('responses/files', 'local');
-                    $valueData['file_path']            = $path;
-                    $valueData['file_original_name']   = $file->getClientOriginalName();
+                    $file = $request->file($fieldKey);
+                    $directory = 'uploads/responses/' . Str::slug($form->title) . '/response-' . $response->id;
+                    $directoryPath = public_path($directory);
+                    File::ensureDirectoryExists($directoryPath);
+
+                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $filename = (Str::slug($originalName) ?: 'upload')
+                        . '-field-' . $field->id
+                        . '-' . Str::lower(Str::random(8))
+                        . '.' . $extension;
+
+                    $file->move($directoryPath, $filename);
+                    $valueData['file_path'] = $directory . '/' . $filename;
+                    $valueData['file_original_name'] = $file->getClientOriginalName();
                 } elseif (is_array($rawValue)) {
                     $valueData['values'] = $rawValue;
                 } else {
@@ -73,7 +86,10 @@ class FormResponseService
             ->where('form_id', $form->id);
 
         if ($doctorId) {
-            $query->where('assigned_doctor_id', $doctorId);
+            $query->whereHas('form.assignments', function ($assignmentQuery) use ($doctorId) {
+                $assignmentQuery->where('doctor_id', $doctorId)
+                    ->where('is_active', true);
+            });
         }
 
         $responses = $query->latest()->get();

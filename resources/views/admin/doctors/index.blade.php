@@ -26,7 +26,7 @@
 
     <div class="card overflow-hidden">
         @if($doctors->isEmpty())
-            <x-empty-state icon="fa-user-md" title="No doctors found"
+            <x-empty-state icon="fa-user-doctor" title="No doctors found"
                 subtitle="Add your first doctor to get started.">
                 <x-slot:action>
                     <a href="{{ route('admin.doctors.create') }}" class="btn btn-primary btn-sm">

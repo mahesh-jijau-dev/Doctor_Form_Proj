@@ -72,9 +72,9 @@
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-theme-text truncate">{{ $value->file_original_name }}</p>
                     </div>
-                    <a href="{{ Storage::url($value->file_path) }}" target="_blank"
+                    <a href="{{ str_starts_with($value->file_path, 'uploads/') ? asset($value->file_path) : Storage::url($value->file_path) }}" target="_blank"
                        class="btn btn-sm btn-secondary flex-shrink-0">
-                        <i class="fas fa-external-link-alt"></i> View
+                        <i class="fas fa-arrow-up-right-from-square"></i> View
                     </a>
                 </div>
             @elseif(is_array($value->value) || (is_string($value->value) && str_starts_with(trim((string) $value->value), '[')))

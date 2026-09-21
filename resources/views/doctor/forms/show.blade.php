@@ -38,7 +38,7 @@
     <div class="card p-5">
         <div class="flex flex-wrap items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-xl bg-theme-surface-2 flex items-center justify-center">
-                <i class="fas fa-file-alt text-theme-primary text-lg"></i>
+                <i class="fas fa-file-lines text-theme-primary text-lg"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">

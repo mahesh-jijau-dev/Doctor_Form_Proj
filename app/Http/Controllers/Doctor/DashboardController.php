@@ -3,13 +3,13 @@ namespace App\Http\Controllers\Doctor;
 use App\Http\Controllers\Controller;
 use App\Models\FormResponse;
 use App\Models\FormAssignment;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $assignedFormIds = FormAssignment::where('doctor_id', $user->id)
             ->where('is_active', true)
@@ -17,13 +17,19 @@ class DashboardController extends Controller
 
         $stats = [
             'assigned_forms' => $assignedFormIds->count(),
-            'total_responses' => FormResponse::where('assigned_doctor_id', $user->id)->count(),
-            'today_responses' => FormResponse::where('assigned_doctor_id', $user->id)->whereDate('submitted_at', today())->count(),
-            'this_week_responses' => FormResponse::where('assigned_doctor_id', $user->id)->where('submitted_at', '>=', now()->startOfWeek())->count(),
+            'total_responses' => FormResponse::whereHas('form.assignments', fn ($query) => $query
+                ->where('doctor_id', $user->id)->where('is_active', true))->count(),
+            'today_responses' => FormResponse::whereHas('form.assignments', fn ($query) => $query
+                ->where('doctor_id', $user->id)->where('is_active', true))
+                ->whereDate('submitted_at', today())->count(),
+            'this_week_responses' => FormResponse::whereHas('form.assignments', fn ($query) => $query
+                ->where('doctor_id', $user->id)->where('is_active', true))
+                ->where('submitted_at', '>=', now()->startOfWeek())->count(),
         ];
 
         $recentResponses = FormResponse::with('form')
-            ->where('assigned_doctor_id', $user->id)
+            ->whereHas('form.assignments', fn ($query) => $query
+                ->where('doctor_id', $user->id)->where('is_active', true))
             ->latest('submitted_at')
             ->limit(5)
             ->get();

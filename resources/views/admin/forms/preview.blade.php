@@ -135,7 +135,7 @@
 
             @elseif($field->type === 'file')
               <div class="border-2 border-dashed border-theme rounded-lg p-6 text-center hover:border-theme-primary transition-colors">
-                <i class="fas fa-cloud-upload-alt text-theme-muted text-2xl mb-2"></i>
+                <i class="fas fa-cloud-arrow-up text-theme-muted text-2xl mb-2"></i>
                 <p class="text-sm text-theme-muted">Click to choose file</p>
                 <input type="file" class="hidden">
               </div>

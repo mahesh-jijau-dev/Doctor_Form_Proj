@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ darkMode: localStorage.getItem('theme') === 'dark' }"
+<html lang="en" x-data="{ darkMode: localStorage.getItem('theme') !== 'light' }"
       :class="{ 'dark': darkMode }" class="transition-theme">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
     <div class="app-shell flex">
         <!-- Sidebar -->
         <aside class="app-sidebar bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300"
-               :class="sidebarOpen ? 'w-64 app-sidebar-open' : 'w-0 overflow-hidden app-sidebar-closed'">
+               :class="sidebarOpen ? 'w-56 app-sidebar-open' : 'w-0 overflow-hidden app-sidebar-closed'">
             <!-- Logo -->
             <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
                 <div class="w-8 h-8 bg-theme-primary rounded-lg flex items-center justify-center flex-shrink-0">
@@ -30,7 +30,7 @@
                 <p class="text-xs font-semibold text-white/30 uppercase tracking-widest px-3 mb-2">Main</p>
                 <a href="{{ route('admin.dashboard') }}"
                    class="sidebar-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt icon"></i>
+                    <i class="fas fa-gauge-high icon"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="{{ route('admin.doctors.index') }}"
@@ -47,7 +47,7 @@
                 </a>
                 <a href="{{ route('admin.forms.create') }}"
                    class="sidebar-item {{ request()->routeIs('admin.forms.create') ? 'active' : '' }}">
-                    <i class="fas fa-plus-circle icon"></i>
+                    <i class="fas fa-circle-plus icon"></i>
                     <span>Create Form</span>
                 </a>
 
@@ -73,7 +73,7 @@
                 <form action="{{ route('logout') }}" method="POST" class="mt-1">
                     @csrf
                     <button type="submit" class="sidebar-item w-full text-left">
-                        <i class="fas fa-sign-out-alt icon"></i>
+                        <i class="fas fa-arrow-right-from-bracket icon"></i>
                         <span>Logout</span>
                     </button>
                 </form>
@@ -116,7 +116,7 @@
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="w-full text-left px-4 py-2 text-sm text-theme-danger hover:bg-theme-surface-2 transition-colors flex items-center gap-2">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                    <i class="fas fa-arrow-right-from-bracket"></i> Logout
                                 </button>
                             </form>
                         </div>

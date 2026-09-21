@@ -56,7 +56,7 @@
                 </label>
                 @empty
                 <div class="text-center py-8">
-                    <i class="fas fa-user-md text-theme-muted text-3xl mb-2"></i>
+                    <i class="fas fa-user-doctor text-theme-muted text-3xl mb-2"></i>
                     <p class="text-sm text-theme-muted">No active doctors found.</p>
                     <a href="{{ route('admin.doctors.create') }}" class="btn btn-primary btn-sm mt-3">
                         <i class="fas fa-plus"></i> Add Doctor

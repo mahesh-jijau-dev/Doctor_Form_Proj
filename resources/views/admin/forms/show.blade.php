@@ -8,7 +8,7 @@
     <div class="card p-5">
         <div class="flex flex-col sm:flex-row sm:items-start gap-4">
             <div class="w-12 h-12 rounded-xl bg-theme-primary flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-file-alt text-white text-xl"></i>
+                <i class="fas fa-file-lines text-white text-xl"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
@@ -103,7 +103,7 @@
 
                 @if($form->fields->isEmpty())
                     <div class="px-5 py-10 text-center">
-                        <i class="fas fa-plus-circle text-theme-muted text-3xl mb-3"></i>
+                        <i class="fas fa-circle-plus text-theme-muted text-3xl mb-3"></i>
                         <p class="text-sm font-medium text-theme-text">No fields yet</p>
                         <p class="text-xs text-theme-muted mt-1">Open the builder to add fields to this form.</p>
                         <a href="{{ route('admin.forms.builder', $form) }}" class="btn btn-primary btn-sm mt-3">
@@ -207,7 +207,7 @@
             <div class="card overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-theme">
                     <h2 class="text-sm font-semibold text-theme-text flex items-center gap-2">
-                        <i class="fas fa-user-md text-theme-primary"></i> Assigned Doctors
+                        <i class="fas fa-user-doctor text-theme-primary"></i> Assigned Doctors
                     </h2>
                     <a href="{{ route('admin.forms.assign', $form) }}"
                        class="text-xs text-theme-primary hover:underline">Edit</a>

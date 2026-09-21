@@ -79,6 +79,8 @@ class PublicFormController extends Controller
 
             if ($field->type === 'file') {
                 $fieldRules[] = 'file';
+                $fieldRules[] = 'mimes:pdf,doc,docx,txt,rtf,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp';
+                $fieldRules[] = 'max:10240';
             }
 
             if (! empty($field->validation_rules) && is_array($field->validation_rules)) {

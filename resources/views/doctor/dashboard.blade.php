@@ -57,7 +57,7 @@
                 </div>
                 @empty
                 <div class="px-5 py-8 text-center">
-                    <i class="fas fa-file-alt text-theme-muted text-2xl mb-2"></i>
+                    <i class="fas fa-file-lines text-theme-muted text-2xl mb-2"></i>
                     <p class="text-sm text-theme-muted">No forms assigned yet.</p>
                 </div>
                 @endforelse

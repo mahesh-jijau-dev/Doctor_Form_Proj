@@ -5,7 +5,7 @@
     <!-- Logo -->
     <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-theme-primary mb-4">
-            <i class="fas fa-stethoscope text-white text-2xl"></i>
+            <i class="fas fa-heart-pulse text-white text-2xl"></i>
         </div>
         <h1 class="text-2xl font-bold text-theme-text">MediForm</h1>
         <p class="text-sm text-theme-muted mt-1">Sign in to your account</p>

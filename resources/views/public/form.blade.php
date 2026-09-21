@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ dark: localStorage.getItem('theme') === 'dark' }" :class="{ 'dark': dark }">
+<html lang="en" x-data="{ dark: localStorage.getItem('theme') !== 'light' }" :class="{ 'dark': dark }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $form->title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
 </head>
@@ -127,9 +128,11 @@
                                     </div>
                                 @elseif($field->type === 'file')
                                     <div class="public-upload-box {{ $hasError ? 'is-invalid' : '' }}">
-                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <i class="fas fa-cloud-arrow-up"></i>
                                         <span>Choose file</span>
-                                        <input id="{{ $fieldName }}" name="{{ $fieldName }}" type="file" class="public-file-input" />
+                                             <input id="{{ $fieldName }}" name="{{ $fieldName }}" type="file"
+                                                 accept=".pdf,.doc,.docx,.txt,.rtf,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp"
+                                                 class="public-file-input" />
                                     </div>
                                 @elseif($field->type === 'rating')
                                     @php $max = (int) ($field->settings['max'] ?? 5); @endphp
@@ -137,7 +140,7 @@
                                         @for($i = 1; $i <= $max; $i++)
                                             <label class="public-rating-star">
                                                 <input type="radio" name="{{ $fieldName }}" value="{{ $i }}" {{ old($fieldName) == $i ? 'checked' : '' }}>
-                                                <span><i class="fas fa-star"></i></span>
+                                                <span aria-hidden="true">★</span>
                                             </label>
                                         @endfor
                                     </div>

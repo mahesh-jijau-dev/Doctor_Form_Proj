@@ -23,7 +23,7 @@
 
     @if($assignments->isEmpty())
     <div class="card">
-        <x-empty-state icon="fa-file-alt" title="No forms assigned"
+        <x-empty-state icon="fa-file-lines" title="No forms assigned"
                        subtitle="The administrator has not assigned any forms to you yet." />
     </div>
     @else

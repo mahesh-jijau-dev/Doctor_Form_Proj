@@ -51,7 +51,7 @@
                 @if($response->form)
                 <div class="response-meta-footer">
                     <div class="response-form-badge">
-                        <i class="fas fa-file-alt"></i>
+                        <i class="fas fa-file-lines"></i>
                         <span>{{ $response->form->title }}</span>
                         <x-badge :type="$response->form->status === 'published' ? 'success' : 'muted'">
                             {{ ucfirst($response->form->status) }}
@@ -75,8 +75,8 @@
                             <div class="response-file-box">
                                 <div class="response-file-icon"><i class="fas fa-file"></i></div>
                                 <div class="response-file-name">{{ $value->file_original_name }}</div>
-                                <a href="{{ Storage::url($value->file_path) }}" target="_blank" class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-external-link-alt"></i> View
+                                <a href="{{ str_starts_with($value->file_path, 'uploads/') ? asset($value->file_path) : Storage::url($value->file_path) }}" target="_blank" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> View
                                 </a>
                             </div>
                         @elseif(is_array($value->value) || (is_string($value->value) && str_starts_with(trim($value->value), '[')))

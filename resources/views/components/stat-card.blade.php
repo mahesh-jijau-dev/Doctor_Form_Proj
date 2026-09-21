@@ -1,8 +1,8 @@
 @props(['title', 'value', 'icon', 'color' => 'primary', 'subtitle' => null, 'iconBg' => null])
 @php
     $statColors = [
-        'primary' => '15 118 110',
-        'secondary' => '79 70 229',
+        'primary' => '109 74 255',
+        'secondary' => '139 92 246',
         'success' => '16 185 129',
         'warning' => '245 158 11',
     ];

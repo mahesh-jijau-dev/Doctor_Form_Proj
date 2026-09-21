@@ -6,12 +6,12 @@
 
 :root {
     /* Primary brand color */
-    --color-primary: 15 118 110;        /* teal-700 */
-    --color-primary-dark: 13 94 89;     /* teal-800 */
-    --color-primary-light: 45 212 191;  /* teal-400 */
+    --color-primary: 109 74 255;        /* violet */
+    --color-primary-dark: 83 53 216;    /* violet-dark */
+    --color-primary-light: 167 139 250; /* violet-light */
 
     /* Accent */
-    --color-accent: 79 70 229;          /* indigo-600 */
+    --color-accent: 139 92 246;         /* violet-500 */
 
     /* Semantic colors */
     --color-success: 34 197 94;         /* green-500 */
@@ -20,31 +20,31 @@
     --color-info: 59 130 246;           /* blue-500 */
 
     /* Light mode surfaces */
-    --color-bg: 248 250 252;            /* slate-50 */
-    --color-surface: 255 255 255;       /* white */
-    --color-surface-2: 241 245 249;     /* slate-100 */
-    --color-border: 226 232 240;        /* slate-200 */
-    --color-text: 15 23 42;             /* slate-900 */
-    --color-text-muted: 100 116 139;    /* slate-500 */
-    --color-sidebar-bg: 15 23 42;       /* slate-900 */
-    --color-sidebar-text: 148 163 184;  /* slate-400 */
-    --color-sidebar-active: 45 212 191; /* teal-400 */
+    --color-bg: 246 244 252;
+    --color-surface: 255 255 255;
+    --color-surface-2: 241 238 250;
+    --color-border: 226 221 239;
+    --color-text: 28 25 39;
+    --color-text-muted: 107 101 125;
+    --color-sidebar-bg: 31 30 36;
+    --color-sidebar-text: 169 166 181;
+    --color-sidebar-active: 167 139 250;
 }
 
 .dark {
-    --color-bg: 11 18 32;
-    --color-surface: 17 24 39;
-    --color-surface-2: 30 41 59;
-    --color-border: 30 41 59;
-    --color-text: 248 250 252;
-    --color-text-muted: 148 163 184;
-    --color-sidebar-bg: 2 6 23;
-    --color-sidebar-text: 148 163 184;
-    --color-primary: 20 184 166;
-    --color-primary-dark: 13 148 136;
-    --color-primary-light: 94 234 212;
-    --color-accent: 129 140 248;
-    --color-sidebar-active: 45 212 191;
+    --color-bg: 31 30 36;
+    --color-surface: 39 39 44;
+    --color-surface-2: 51 50 58;
+    --color-border: 64 63 72;
+    --color-text: 246 244 252;
+    --color-text-muted: 169 166 181;
+    --color-sidebar-bg: 30 29 34;
+    --color-sidebar-text: 169 166 181;
+    --color-primary: 139 92 246;
+    --color-primary-dark: 109 74 255;
+    --color-primary-light: 196 181 253;
+    --color-accent: 167 139 250;
+    --color-sidebar-active: 196 181 253;
 }
 
 /* ============================================================
@@ -100,12 +100,12 @@
 .card {
     background-color: rgb(var(--color-surface));
     border: 1px solid rgb(var(--color-border));
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 24px 0 rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.05);
+    border-radius: 0.85rem;
+    box-shadow: 0 8px 24px 0 rgba(18, 16, 27, 0.06), 0 1px 3px -1px rgba(18, 16, 27, 0.08);
 }
 
 .dark .card {
-    box-shadow: 0 8px 24px 0 rgba(0,0,0,0.18);
+    box-shadow: 0 10px 28px 0 rgba(0,0,0,0.16);
 }
 
 /* Dashboard */
@@ -146,6 +146,60 @@
     background-size: 16px 16px, auto;
 }
 
+.dashboard-feed-card {
+    overflow: hidden;
+}
+
+.dashboard-feed-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid rgb(var(--color-border));
+    background: rgba(var(--color-primary), 0.035);
+}
+
+.dashboard-feed-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.dashboard-feed-row {
+    min-height: 68px;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(var(--color-border), 0.75);
+    transition: background-color 0.15s ease;
+}
+
+.dashboard-feed-row:last-child { border-bottom: none; }
+.dashboard-feed-row:hover { background: rgba(var(--color-primary), 0.045); }
+
+.dashboard-feed-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: rgb(var(--color-primary));
+    background: rgba(var(--color-primary), 0.1);
+}
+
+.dark .dashboard-feed-header { background: rgba(var(--color-primary), 0.08); }
+.dark .dashboard-feed-row { border-bottom-color: rgba(255,255,255,0.07); }
+
+body { font-family: "DM Sans", "Segoe UI", sans-serif; }
+.app-topbar { background: rgba(var(--color-surface), 0.92); backdrop-filter: blur(12px); }
+.dark .app-topbar { background: rgba(39, 39, 44, 0.92); }
+
+.doctor-create-page {
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.doctor-create-page .page-header-content { flex-shrink: 0; }
+.doctor-create-card { min-height: 0; overflow: visible; }
+
 /* Input base */
 .input-base {
     width: 100%;
@@ -175,7 +229,7 @@
     justify-content: center;
     gap: 0.375rem;
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: 0.65rem;
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.15s;
@@ -206,6 +260,8 @@
 .btn-secondary:hover:not(:disabled) {
     background-color: rgb(var(--color-border));
 }
+
+.dark .btn-secondary { background-color: rgb(var(--color-surface-2)); border-color: rgb(var(--color-border)); }
 
 .btn-success {
     background-color: rgb(var(--color-success));
@@ -330,6 +386,8 @@
     .app-topbar { padding: 0.75rem 1rem; }
     .app-main { padding: 1rem; }
     .app-topbar h1 { font-size: 0.9rem; }
+    .doctor-create-page { height: auto; }
+    .doctor-create-card { overflow: visible; }
     .toast { left: 1rem; right: 1rem; min-width: 0; max-width: none; }
     .table-base { min-width: 700px; }
     .table-base thead th { padding: 0.7rem 0.8rem; }
@@ -1014,6 +1072,13 @@ body { background-color: rgb(var(--color-bg)); color: rgb(var(--color-text)); }
     color: rgb(var(--color-primary));
 }
 
+.public-rating-star:has(input:checked) {
+    border-color: rgb(var(--color-primary));
+    background: rgb(var(--color-primary));
+    color: white;
+    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.16);
+}
+
 .public-rating-star input {
     display: none;
 }
@@ -1021,6 +1086,10 @@ body { background-color: rgb(var(--color-bg)); color: rgb(var(--color-text)); }
 .public-rating-star span {
     font-size: 1.05rem;
     color: rgb(var(--color-text-muted));
+}
+
+.public-rating-star:has(input:checked) span {
+    color: white;
 }
 
 .public-scale-group {

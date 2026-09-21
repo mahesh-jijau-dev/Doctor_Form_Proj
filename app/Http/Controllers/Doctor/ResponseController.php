@@ -6,6 +6,7 @@ use App\Models\FormResponse;
 use App\Services\FormResponseService;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ResponseController extends Controller
 {
@@ -16,9 +17,12 @@ class ResponseController extends Controller
 
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $query = FormResponse::with('form')
-            ->where('assigned_doctor_id', $user->id)
+            ->whereHas('form.assignments', function ($assignmentQuery) use ($user) {
+                $assignmentQuery->where('doctor_id', $user->id)
+                    ->where('is_active', true);
+            })
             ->latest('submitted_at');
 
         if ($formId = $request->input('form_id')) {
@@ -58,14 +62,14 @@ class ResponseController extends Controller
     public function export(Request $request, Form $form)
     {
         $this->authorize('view', $form);
-        $exportData = $this->responseService->getExportData($form, auth()->id());
+        $exportData = $this->responseService->getExportData($form, Auth::id());
         return $this->exportService->exportResponsesCsv($form, $exportData);
     }
 
     public function exportPdf(Request $request, Form $form)
     {
         $this->authorize('view', $form);
-        $exportData = $this->responseService->getExportData($form, auth()->id());
+        $exportData = $this->responseService->getExportData($form, Auth::id());
         return $this->exportService->exportResponsesPdf($form, $exportData);
     }
 }

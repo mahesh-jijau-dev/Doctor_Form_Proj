@@ -108,14 +108,14 @@
             <div class="card overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-theme">
                     <h2 class="text-sm font-semibold text-theme-text flex items-center gap-2">
-                        <i class="fas fa-file-alt text-theme-primary"></i> Assigned Forms
+                        <i class="fas fa-file-lines text-theme-primary"></i> Assigned Forms
                     </h2>
                     <span class="badge badge-primary">{{ $doctor->assignments->count() }}</span>
                 </div>
 
                 @if($doctor->assignments->isEmpty())
                     <div class="px-5 py-8 text-center">
-                        <i class="fas fa-file-alt text-theme-muted text-2xl mb-2"></i>
+                        <i class="fas fa-file-lines text-theme-muted text-2xl mb-2"></i>
                         <p class="text-sm text-theme-muted">No forms assigned to this doctor</p>
                     </div>
                 @else
@@ -123,7 +123,7 @@
                         @foreach($doctor->assignments as $assignment)
                         <div class="flex items-center gap-3 px-5 py-3">
                             <div class="w-8 h-8 rounded-lg bg-theme-surface-2 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-file-alt text-theme-muted text-xs"></i>
+                                <i class="fas fa-file-lines text-theme-muted text-xs"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-theme-text truncate">
@@ -161,7 +161,7 @@
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm text-theme-muted">
-                            <i class="fas fa-file-alt w-4 text-center"></i>
+                            <i class="fas fa-file-lines w-4 text-center"></i>
                             <span>Assigned Forms</span>
                         </div>
                         <span class="text-sm font-semibold text-theme-text">
