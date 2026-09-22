@@ -2,6 +2,9 @@
 <html lang="en" x-data="{ darkMode: localStorage.getItem('theme') !== 'light' }"
       :class="{ 'dark': darkMode }" class="transition-theme">
 <head>
+    <script>
+        (() => { try { if (localStorage.getItem('theme') !== 'light') document.documentElement.classList.add('dark'); } catch (error) {} })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -12,6 +15,7 @@
 </head>
 <body class="bg-theme-bg text-theme-text transition-theme app-body"
       x-data="{ sidebarOpen: window.innerWidth > 1024 }">
+    @include('components.site-loader')
 
     <div class="app-shell flex">
         <!-- Sidebar -->

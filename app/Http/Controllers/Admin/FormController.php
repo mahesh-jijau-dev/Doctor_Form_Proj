@@ -18,7 +18,9 @@ class FormController extends Controller
 
     public function index(Request $request)
     {
-        $query = Form::withCount('responses')->with('creator');
+        $query = Form::withCount('responses')
+            ->withCount(['assignments' => fn ($assignmentQuery) => $assignmentQuery->where('is_active', true)])
+            ->with('creator');
 
         if ($search = $request->input('search')) {
             $query->where('title', 'like', "%{$search}%");

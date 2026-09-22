@@ -2,6 +2,9 @@
 <html lang="en" x-data="{ dark: localStorage.getItem('theme') !== 'light' }" :class="{ 'dark': dark }">
 
 <head>
+    <script>
+        (() => { try { if (localStorage.getItem('theme') !== 'light') document.documentElement.classList.add('dark'); } catch (error) {} })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $form->title }}</title>
@@ -11,6 +14,7 @@
 </head>
 
 <body class="bg-theme-bg text-theme-text min-h-screen antialiased">
+    @include('components.site-loader')
     <div class="public-form-page">
         <div class="public-form-shell" x-data="publicFormState()">
             <div class="public-form-header">
