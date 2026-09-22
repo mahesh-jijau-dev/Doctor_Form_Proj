@@ -80,7 +80,14 @@
         @endif
         @endforeach
     </div>
-    <div class="mt-4">{{ $assignments->links() }}</div>
+    @if($assignments->hasPages())
+    <div class="mt-4">
+        <p class="text-xs text-theme-muted mb-2">
+            Showing {{ $assignments->firstItem() }} to {{ $assignments->lastItem() }} of {{ $assignments->total() }} forms
+        </p>
+        {{ $assignments->links() }}
+    </div>
+    @endif
     @endif
 </div>
 @endsection

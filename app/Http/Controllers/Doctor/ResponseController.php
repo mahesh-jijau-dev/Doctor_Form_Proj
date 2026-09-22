@@ -59,17 +59,43 @@ class ResponseController extends Controller
         return view('doctor.responses.show', compact('response'));
     }
 
+    public function exportFiltered(Request $request)
+    {
+        $data = $this->responseService->getFilteredExportData($request->integer('form_id') ?: null, Auth::id(), $request->only(['search', 'from', 'to']));
+        return $this->exportService->exportFilteredResponsesCsv($data);
+    }
+
+    public function exportFilteredPdf(Request $request)
+    {
+        $data = $this->responseService->getFilteredExportData($request->integer('form_id') ?: null, Auth::id(), $request->only(['search', 'from', 'to']));
+        return $this->exportService->exportFilteredResponsesPdf($data);
+    }
+
     public function export(Request $request, Form $form)
     {
         $this->authorize('view', $form);
-        $exportData = $this->responseService->getExportData($form, Auth::id());
+        $exportData = $this->responseService->getExportData($form, Auth::id(), $request->only(['search', 'from', 'to']));
         return $this->exportService->exportResponsesCsv($form, $exportData);
     }
 
     public function exportPdf(Request $request, Form $form)
     {
         $this->authorize('view', $form);
-        $exportData = $this->responseService->getExportData($form, Auth::id());
+        $exportData = $this->responseService->getExportData($form, Auth::id(), $request->only(['search', 'from', 'to']));
         return $this->exportService->exportResponsesPdf($form, $exportData);
+    }
+
+    public function exportResponse(FormResponse $response)
+    {
+        $this->authorize('export', $response);
+        $response->load(['form', 'values', 'assignedDoctor']);
+        return $this->exportService->exportResponseCsv($response);
+    }
+
+    public function exportResponsePdf(FormResponse $response)
+    {
+        $this->authorize('export', $response);
+        $response->load(['form', 'values', 'assignedDoctor']);
+        return $this->exportService->exportResponsePdf($response);
     }
 }

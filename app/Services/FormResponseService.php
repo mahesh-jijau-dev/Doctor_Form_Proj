@@ -80,15 +80,31 @@ class FormResponseService
     /**
      * Build a structured array of headers + rows suitable for CSV export.
      */
-    public function getExportData(Form $form, ?int $doctorId = null): array
+    public function getExportData(Form $form, ?int $doctorId = null, array $filters = []): array
     {
         $query = FormResponse::with(['values', 'assignedDoctor'])
             ->where('form_id', $form->id);
+
+        $doctorId ??= ! empty($filters['doctor_id']) ? (int) $filters['doctor_id'] : null;
 
         if ($doctorId) {
             $query->whereHas('form.assignments', function ($assignmentQuery) use ($doctorId) {
                 $assignmentQuery->where('doctor_id', $doctorId)
                     ->where('is_active', true);
+            });
+        }
+
+        if (! empty($filters['from'])) {
+            $query->whereDate('submitted_at', '>=', $filters['from']);
+        }
+        if (! empty($filters['to'])) {
+            $query->whereDate('submitted_at', '<=', $filters['to']);
+        }
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery->where('submitted_by_name', 'like', "%{$search}%")
+                    ->orWhere('submitted_by_email', 'like', "%{$search}%");
             });
         }
 
@@ -118,6 +134,64 @@ class FormResponseService
 
             $rows[] = $row;
         }
+
+        return compact('headers', 'rows');
+    }
+
+    public function getFilteredExportData(?int $formId = null, ?int $doctorId = null, array $filters = []): array
+    {
+        $query = FormResponse::with(['form.fields', 'values', 'assignedDoctor'])->latest('submitted_at');
+
+        if ($formId) {
+            $query->where('form_id', $formId);
+        }
+        if ($doctorId) {
+            $query->whereHas('form.assignments', function ($assignmentQuery) use ($doctorId) {
+                $assignmentQuery->where('doctor_id', $doctorId)->where('is_active', true);
+            });
+        }
+        if (! empty($filters['doctor_id'])) {
+            $doctorId = $filters['doctor_id'];
+            $query->where(function ($doctorQuery) use ($doctorId) {
+                $doctorQuery->where('assigned_doctor_id', $doctorId)
+                    ->orWhereHas('form.assignments', function ($assignmentQuery) use ($doctorId) {
+                        $assignmentQuery->where('doctor_id', $doctorId)
+                            ->where('is_active', true);
+                    });
+            });
+        }
+        if (! empty($filters['from'])) {
+            $query->whereDate('submitted_at', '>=', $filters['from']);
+        }
+        if (! empty($filters['to'])) {
+            $query->whereDate('submitted_at', '<=', $filters['to']);
+        }
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery->where('submitted_by_name', 'like', "%{$search}%")
+                    ->orWhere('submitted_by_email', 'like', "%{$search}%");
+            });
+        }
+
+        $responses = $query->get();
+        $fields = $responses->flatMap(fn ($response) => $response->form?->fields ?? collect())
+            ->whereNotIn('type', ['section_header', 'heading', 'description', 'image'])
+            ->unique('id')->values();
+
+        $headers = ['ID', 'Form', 'Submitted At', 'Doctor', 'Patient'];
+        foreach ($fields as $field) {
+            $headers[] = $field->label;
+        }
+
+        $rows = $responses->map(function ($response) use ($fields) {
+            $row = [$response->id, $response->form?->title ?? 'N/A', $response->submitted_at?->format('Y-m-d H:i:s'), $response->assignedDoctor?->name ?? 'N/A', $response->submitted_by_name ?? 'Anonymous'];
+            foreach ($fields as $field) {
+                $value = $response->values->firstWhere('field_id', $field->id);
+                $row[] = $value ? $value->getDisplayValue() : '';
+            }
+            return $row;
+        })->all();
 
         return compact('headers', 'rows');
     }

@@ -4,7 +4,8 @@
 
 @section('content')
 <div class="max-w-2xl">
-    <x-page-header title="Edit Form" subtitle="Update the form settings and metadata" />
+    <x-page-header title="Edit Form" subtitle="Update the form settings and metadata"
+                   :back-url="route('admin.forms.show', $form)" />
 
     <div class="card p-6">
         <form method="POST" action="{{ route('admin.forms.update', $form) }}" class="space-y-5">

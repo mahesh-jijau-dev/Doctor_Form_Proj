@@ -17,6 +17,16 @@ class EnsureUserIsDoctor
             abort(403, 'Access denied.');
         }
 
+        if (!auth()->user()->is_active) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account has been deactivated.',
+            ]);
+        }
+
         return $next($request);
     }
 }

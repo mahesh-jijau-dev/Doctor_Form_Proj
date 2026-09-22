@@ -4,7 +4,8 @@
 
 @section('content')
 <div class="max-w-2xl">
-    <x-page-header :title="'Assign: ' . $form->title" subtitle="Select doctors to assign this form to" />
+    <x-page-header :title="'Assign: ' . $form->title" subtitle="Select doctors to assign this form to"
+                   :back-url="route('admin.forms.show', $form)" />
 
     <div class="card p-6">
         <form action="{{ route('admin.forms.assign.update', $form) }}" method="POST"

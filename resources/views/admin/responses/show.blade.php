@@ -15,14 +15,12 @@
                     <a href="{{ route('admin.responses.index') }}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-arrow-left"></i> Back
                     </a>
-                    @if($response->form)
-                    <a href="{{ route('admin.forms.responses.export', $response->form_id) }}" class="btn btn-primary btn-sm">
+                    <a href="{{ route('admin.responses.export', $response) }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-file-excel"></i> Excel
                     </a>
-                    <a href="{{ route('admin.forms.responses.export.pdf', $response->form_id) }}" class="btn btn-danger btn-sm">
+                    <a href="{{ route('admin.responses.export.pdf', $response) }}" class="btn btn-danger btn-sm">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
-                    @endif
                 </div>
             </div>
         </div>

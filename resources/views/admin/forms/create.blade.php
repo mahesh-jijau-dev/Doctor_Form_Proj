@@ -4,7 +4,8 @@
 
 @section('content')
     <div class="max-w-6xl mx-auto w-full">
-        <x-page-header title="Create New Form" subtitle="Set up your form, then use the builder to add fields." />
+        <x-page-header title="Create New Form" subtitle="Set up your form, then use the builder to add fields."
+                   :back-url="route('admin.forms.index')" />
 
         <form method="POST" action="{{ route('admin.forms.store') }}" x-data="{ multiSection: false }">
             @csrf

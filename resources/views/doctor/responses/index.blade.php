@@ -32,17 +32,15 @@
             </a>
             @endif
         </form>
-        @if($selectedForm)
         <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-theme">
-            <span class="text-xs text-theme-muted mr-auto">Export {{ $selectedForm->title }} responses</span>
-            <a href="{{ route('doctor.forms.responses.export.pdf', $selectedForm) }}" class="btn btn-danger btn-sm">
+            <span class="text-xs text-theme-muted mr-auto">Export filtered responses</span>
+            <a href="{{ route('doctor.responses.export.filtered.pdf') . '?' . http_build_query(request()->only(['search', 'form_id', 'from', 'to'])) }}" class="btn btn-danger btn-sm">
                 <i class="fas fa-file-pdf"></i> PDF
             </a>
-            <a href="{{ route('doctor.forms.responses.export', $selectedForm) }}" class="btn btn-success btn-sm">
+            <a href="{{ route('doctor.responses.export.filtered') . '?' . http_build_query(request()->only(['search', 'form_id', 'from', 'to'])) }}" class="btn btn-success btn-sm">
                 <i class="fas fa-file-excel"></i> Excel (CSV)
             </a>
         </div>
-        @endif
     </div>
 
     <div class="card overflow-hidden">
@@ -98,9 +96,14 @@
                 </tbody>
             </table>
         </div>
+        @if($responses->hasPages())
         <div class="px-5 py-3 border-t border-theme">
+            <p class="text-xs text-theme-muted mb-2">
+                Showing {{ $responses->firstItem() }} to {{ $responses->lastItem() }} of {{ $responses->total() }} responses
+            </p>
             {{ $responses->links() }}
         </div>
+        @endif
         @endif
     </div>
 </div>

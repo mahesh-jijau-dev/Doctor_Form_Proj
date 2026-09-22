@@ -153,14 +153,14 @@
                             @endif
 
                             {{-- Render a preview of the field --}}
-                            @if(in_array($field->type, ['text', 'email', 'number', 'phone']))
+                            @if(in_array($field->type, ['short_text', 'email', 'number', 'phone']))
                             <div class="mt-1">
                                 <input type="{{ $field->type }}" disabled
                                        placeholder="{{ $field->placeholder ?? $field->label }}"
                                        class="input-base w-full sm:w-64 opacity-60 cursor-not-allowed">
                             </div>
 
-                            @elseif($field->type === 'textarea')
+                            @elseif($field->type === 'long_text')
                             <div class="mt-1">
                                 <textarea disabled rows="2" placeholder="{{ $field->placeholder ?? $field->label }}"
                                           class="input-base w-full opacity-60 cursor-not-allowed resize-none"></textarea>
@@ -176,25 +176,25 @@
                                 <input type="time" disabled class="input-base w-36 opacity-60 cursor-not-allowed">
                             </div>
 
-                            @elseif($field->type === 'select' && $field->options)
+                            @elseif($field->type === 'dropdown' && $field->options)
                             <div class="mt-1">
                                 <select disabled class="input-base w-full sm:w-64 opacity-60 cursor-not-allowed">
                                     <option value="">{{ $field->placeholder ?? 'Select an option' }}</option>
                                     @foreach($field->options as $option)
-                                    <option value="{{ is_array($option) ? ($option['value'] ?? $option['label'] ?? $option) : $option }}">
-                                        {{ is_array($option) ? ($option['label'] ?? $option['value'] ?? $option) : $option }}
+                                    <option value="{{ $option->value ?: $option->label }}">
+                                        {{ $option->label }}
                                     </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            @elseif($field->type === 'radio' && $field->options)
+                            @elseif($field->type === 'multiple_choice' && $field->options)
                             <div class="mt-2 space-y-1.5">
                                 @foreach($field->options as $option)
                                 <label class="flex items-center gap-2 opacity-60 cursor-not-allowed">
                                     <input type="radio" disabled class="flex-shrink-0">
                                     <span class="text-sm text-theme-text">
-                                        {{ is_array($option) ? ($option['label'] ?? $option['value'] ?? $option) : $option }}
+                                        {{ $option->label }}
                                     </span>
                                 </label>
                                 @endforeach
@@ -206,7 +206,7 @@
                                 <label class="flex items-center gap-2 opacity-60 cursor-not-allowed">
                                     <input type="checkbox" disabled class="rounded flex-shrink-0">
                                     <span class="text-sm text-theme-text">
-                                        {{ is_array($option) ? ($option['label'] ?? $option['value'] ?? $option) : $option }}
+                                        {{ $option->label }}
                                     </span>
                                 </label>
                                 @endforeach

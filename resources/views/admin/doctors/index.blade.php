@@ -108,6 +108,9 @@
             </div>
             @if($doctors->hasPages())
             <div class="px-5 py-3 border-t border-theme">
+                <p class="text-xs text-theme-muted mb-2">
+                    Showing {{ $doctors->firstItem() }} to {{ $doctors->lastItem() }} of {{ $doctors->total() }} doctors
+                </p>
                 {{ $doctors->links() }}
             </div>
             @endif

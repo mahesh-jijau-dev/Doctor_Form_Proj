@@ -59,7 +59,11 @@ Route::middleware(['auth', 'admin'])
 
         // Responses
         Route::get('/responses', [Admin\ResponseController::class, 'index'])->name('responses.index');
+        Route::get('/responses/export', [Admin\ResponseController::class, 'exportFiltered'])->name('responses.export.filtered');
+        Route::get('/responses/export/pdf', [Admin\ResponseController::class, 'exportFilteredPdf'])->name('responses.export.filtered.pdf');
         Route::get('/responses/{response}', [Admin\ResponseController::class, 'show'])->name('responses.show');
+        Route::get('/responses/{response}/export', [Admin\ResponseController::class, 'exportResponse'])->name('responses.export');
+        Route::get('/responses/{response}/export/pdf', [Admin\ResponseController::class, 'exportResponsePdf'])->name('responses.export.pdf');
         Route::delete('/responses/{response}', [Admin\ResponseController::class, 'destroy'])->name('responses.destroy');
         Route::get('/forms/{form}/responses/export', [Admin\ResponseController::class, 'export'])->name('forms.responses.export');
         Route::get('/forms/{form}/responses/export/pdf', [Admin\ResponseController::class, 'exportPdf'])->name('forms.responses.export.pdf');
@@ -76,7 +80,11 @@ Route::middleware(['auth', 'doctor.role'])
         Route::get('/forms/{form}', [Doctor\FormController::class, 'show'])->name('forms.show');
 
         Route::get('/responses', [Doctor\ResponseController::class, 'index'])->name('responses.index');
+        Route::get('/responses/export', [Doctor\ResponseController::class, 'exportFiltered'])->name('responses.export.filtered');
+        Route::get('/responses/export/pdf', [Doctor\ResponseController::class, 'exportFilteredPdf'])->name('responses.export.filtered.pdf');
         Route::get('/responses/{response}', [Doctor\ResponseController::class, 'show'])->name('responses.show');
+        Route::get('/responses/{response}/export', [Doctor\ResponseController::class, 'exportResponse'])->name('responses.export');
+        Route::get('/responses/{response}/export/pdf', [Doctor\ResponseController::class, 'exportResponsePdf'])->name('responses.export.pdf');
         Route::get('/forms/{form}/responses/export', [Doctor\ResponseController::class, 'export'])->name('forms.responses.export');
         Route::get('/forms/{form}/responses/export/pdf', [Doctor\ResponseController::class, 'exportPdf'])->name('forms.responses.export.pdf');
     });

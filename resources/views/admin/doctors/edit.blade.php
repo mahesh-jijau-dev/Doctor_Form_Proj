@@ -6,7 +6,8 @@
 <div class="max-w-2xl">
     <x-page-header
         :title="'Edit: ' . $doctor->user->name"
-        subtitle="Update doctor account and profile information" />
+        subtitle="Update doctor account and profile information"
+        :back-url="route('admin.doctors.show', $doctor)" />
 
     <div class="card p-6">
         <form method="POST" action="{{ route('admin.doctors.update', $doctor) }}" class="space-y-5">

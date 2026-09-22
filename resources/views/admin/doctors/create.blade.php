@@ -4,7 +4,8 @@
 
 @section('content')
 <div class="doctor-create-page max-w-5xl mx-auto">
-    <x-page-header title="Add New Doctor" subtitle="Create a doctor account and profile" />
+    <x-page-header title="Add New Doctor" subtitle="Create a doctor account and profile"
+                   :back-url="route('admin.doctors.index')" />
 
     <div class="doctor-create-card card p-6">
         <form method="POST" action="{{ route('admin.doctors.store') }}" class="space-y-4">

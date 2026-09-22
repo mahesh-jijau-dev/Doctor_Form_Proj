@@ -23,7 +23,13 @@ class ResponseController extends Controller
             $query->where('form_id', $formId);
         }
         if ($doctorId = $request->input('doctor_id')) {
-            $query->where('assigned_doctor_id', $doctorId);
+            $query->where(function ($doctorQuery) use ($doctorId) {
+                $doctorQuery->where('assigned_doctor_id', $doctorId)
+                    ->orWhereHas('form.assignments', function ($assignmentQuery) use ($doctorId) {
+                        $assignmentQuery->where('doctor_id', $doctorId)
+                            ->where('is_active', true);
+                    });
+            });
         }
         if ($from = $request->input('from')) {
             $query->whereDate('submitted_at', '>=', $from);
@@ -51,16 +57,40 @@ class ResponseController extends Controller
         return view('admin.responses.show', compact('response'));
     }
 
+    public function exportFiltered(Request $request)
+    {
+        $data = $this->responseService->getFilteredExportData($request->integer('form_id') ?: null, null, $request->only(['search', 'doctor_id', 'from', 'to']));
+        return $this->exportService->exportFilteredResponsesCsv($data);
+    }
+
+    public function exportFilteredPdf(Request $request)
+    {
+        $data = $this->responseService->getFilteredExportData($request->integer('form_id') ?: null, null, $request->only(['search', 'doctor_id', 'from', 'to']));
+        return $this->exportService->exportFilteredResponsesPdf($data);
+    }
+
     public function export(Request $request, Form $form)
     {
-        $exportData = $this->responseService->getExportData($form);
+        $exportData = $this->responseService->getExportData($form, null, $request->only(['search', 'from', 'to', 'doctor_id']));
         return $this->exportService->exportResponsesCsv($form, $exportData);
     }
 
     public function exportPdf(Request $request, Form $form)
     {
-        $exportData = $this->responseService->getExportData($form);
+        $exportData = $this->responseService->getExportData($form, null, $request->only(['search', 'from', 'to', 'doctor_id']));
         return $this->exportService->exportResponsesPdf($form, $exportData);
+    }
+
+    public function exportResponse(FormResponse $response)
+    {
+        $response->load(['form', 'values', 'assignedDoctor']);
+        return $this->exportService->exportResponseCsv($response);
+    }
+
+    public function exportResponsePdf(FormResponse $response)
+    {
+        $response->load(['form', 'values', 'assignedDoctor']);
+        return $this->exportService->exportResponsePdf($response);
     }
 
     public function destroy(FormResponse $response)

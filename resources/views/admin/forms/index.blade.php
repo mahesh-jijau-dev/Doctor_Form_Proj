@@ -115,6 +115,9 @@
     </div>
     @if($forms->hasPages())
     <div class="mt-4">
+        <p class="text-xs text-theme-muted mb-2">
+            Showing {{ $forms->firstItem() }} to {{ $forms->lastItem() }} of {{ $forms->total() }} forms
+        </p>
         {{ $forms->links() }}
     </div>
     @endif
