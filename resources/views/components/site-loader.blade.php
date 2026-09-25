@@ -18,9 +18,11 @@
         const loader = document.getElementById('site-loader');
         if (!loader) return;
 
+        let suppressUnload = false;
         const showLoader = () => loader.classList.add('is-active');
+        const isDownloadLink = (link) => link?.hasAttribute('download') || link?.pathname.includes('/export');
         const isInternalNavigation = (link) => {
-            if (!link || link.target === '_blank' || link.hasAttribute('download')) return false;
+            if (!link || link.target === '_blank' || isDownloadLink(link)) return false;
             if (link.origin !== window.location.origin) return false;
             if (link.pathname === window.location.pathname && link.search === window.location.search) return false;
             return !link.hash || link.pathname !== window.location.pathname;
@@ -28,6 +30,11 @@
 
         document.addEventListener('click', (event) => {
             const link = event.target.closest('a');
+            if (isDownloadLink(link)) {
+                suppressUnload = true;
+                window.setTimeout(() => { suppressUnload = false; }, 10000);
+                return;
+            }
             if (!isInternalNavigation(link) || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             showLoader();
         });
@@ -37,7 +44,10 @@
             showLoader();
         });
 
-        window.addEventListener('beforeunload', showLoader);
+        window.addEventListener('beforeunload', (event) => {
+            if (suppressUnload) return;
+            showLoader();
+        });
 
         window.addEventListener('pageshow', () => loader.classList.remove('is-active'));
     })();
