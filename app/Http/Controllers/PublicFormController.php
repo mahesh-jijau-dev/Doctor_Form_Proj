@@ -14,6 +14,13 @@ class PublicFormController extends Controller
     {
     }
 
+    public function index()
+    {
+        $forms = Form::published()->latest()->get();
+
+        return view('public.landing', compact('forms'));
+    }
+
     public function show(Form $form)
     {
         abort_unless($form->status === 'published', 404, 'This form is not publicly available.');

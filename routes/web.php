@@ -6,13 +6,8 @@ use App\Http\Controllers\Doctor;
 use App\Http\Controllers\PublicFormController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect root
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'doctor.dashboard');
-    }
-    return redirect()->route('login');
-});
+// Public landing page
+Route::get('/', [PublicFormController::class, 'index'])->name('home');
 
 // Auth routes
 Route::middleware('guest')->group(function () {
