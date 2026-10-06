@@ -50,6 +50,20 @@
 
             <div class="flex items-center justify-between py-2 border-t border-theme">
                 <div>
+                    <p class="text-sm font-medium text-theme-text">Multi-section Form</p>
+                    <p class="text-xs text-theme-muted">Show one section at a time with Back and Next navigation.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="hidden" name="is_multi_section" value="0">
+                    <input type="checkbox" name="is_multi_section" value="1"
+                           {{ old('is_multi_section', $form->is_multi_section) ? 'checked' : '' }}
+                           class="sr-only peer">
+                    <div class="w-10 h-6 bg-theme-surface-2 border border-theme rounded-full peer peer-checked:bg-theme-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4"></div>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between py-2 border-t border-theme">
+                <div>
                     <p class="text-sm font-medium text-theme-text">Allow Multiple Responses</p>
                     <p class="text-xs text-theme-muted">Allow the same patient to submit more than once</p>
                 </div>

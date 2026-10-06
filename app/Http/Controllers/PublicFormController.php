@@ -26,6 +26,7 @@ class PublicFormController extends Controller
     public function submit(Request $request, Form $form)
     {
         abort_unless($form->status === 'published', 404, 'This form is not publicly available.');
+        $form->load(['fields.options', 'fields.conditions']);
 
         if (! $form->allow_multiple_responses) {
             $submitterEmail = trim((string) ($request->input('_email') ?: $request->input('email') ?: ''));
@@ -39,7 +40,7 @@ class PublicFormController extends Controller
             }
         }
 
-        $rules = $this->buildValidationRules($form);
+        $rules = $this->buildValidationRules($form, $request);
 
         if (! empty($rules)) {
             $validator = Validator::make($request->all(), $rules);
@@ -53,12 +54,12 @@ class PublicFormController extends Controller
         return view('public.thank-you', compact('form'));
     }
 
-    protected function buildValidationRules(Form $form): array
+    protected function buildValidationRules(Form $form, Request $request): array
     {
         $rules = [];
 
         foreach ($form->fields as $field) {
-            if ($field->isLayoutType() || ! $field->is_visible) {
+            if ($field->isLayoutType() || ! $field->is_visible || ! $this->isFieldVisible($field, $form, $request)) {
                 continue;
             }
 
@@ -114,5 +115,35 @@ class PublicFormController extends Controller
         }
 
         return $rules;
+    }
+
+    private function isFieldVisible($field, Form $form, Request $request): bool
+    {
+        foreach ($field->conditions as $condition) {
+            $value = $request->input('field_' . $condition->condition_field_id, '');
+            $valueString = is_array($value) ? implode(',', $value) : (string) $value;
+            $conditionValue = (string) $condition->condition_value;
+
+            $matches = match ($condition->operator) {
+                'equals' => $valueString === $conditionValue,
+                'not_equals' => $valueString !== $conditionValue,
+                'contains' => str_contains($valueString, $conditionValue),
+                'greater_than' => is_numeric($valueString) && $valueString > $conditionValue,
+                'less_than' => is_numeric($valueString) && $valueString < $conditionValue,
+                'is_empty' => $valueString === '',
+                'is_not_empty' => $valueString !== '',
+                default => false,
+            };
+
+            if ($condition->action === 'show' && ! $matches) {
+                return false;
+            }
+
+            if ($condition->action === 'hide' && $matches) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

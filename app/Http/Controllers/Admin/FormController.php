@@ -66,7 +66,14 @@ class FormController extends Controller
 
     public function update(UpdateFormRequest $request, Form $form)
     {
-        $form->update($request->only(['title', 'description', 'submit_button_text', 'confirmation_message', 'allow_multiple_responses']));
+        $form->update($request->only([
+            'title',
+            'description',
+            'submit_button_text',
+            'confirmation_message',
+            'allow_multiple_responses',
+            'is_multi_section',
+        ]));
         $this->auditLog->log('form.updated', 'Form', $form->id, "Form '{$form->title}' updated");
         return redirect()->route('admin.forms.show', $form)->with('success', 'Form updated.');
     }

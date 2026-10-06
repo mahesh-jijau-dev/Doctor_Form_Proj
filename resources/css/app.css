@@ -66,6 +66,10 @@
 /* Hover backgrounds */
 .hover\:bg-theme-primary-dark:hover { background-color: rgb(var(--color-primary-dark)); }
 .hover\:bg-theme-surface-2:hover { background-color: rgb(var(--color-surface-2)); }
+/* Hover backgrounds */
+.hover\:bg-theme-primary:hover { background-color: rgb(var(--color-primary)); }
+.hover\:bg-theme-primary-dark:hover { background-color: rgb(var(--color-primary-dark)); }
+.hover\:bg-theme-surface-2:hover { background-color: rgb(var(--color-surface-2)); }
 
 /* Text colors */
 .text-theme-primary { color: rgb(var(--color-primary)); }

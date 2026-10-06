@@ -34,11 +34,36 @@
                 </div>
             </div>
 
+            @php
+                $configuredSections = $form->sections->values();
+                $usesConfiguredSections = $configuredSections->isNotEmpty();
+                $sectionHeaderCount = $form->fields->where('type', 'section_header')->count();
+                $firstFieldIsSectionHeader = $form->fields->first()?->type === 'section_header';
+                $sectionCount = $usesConfiguredSections
+                    ? $configuredSections->count()
+                    : max(1, $sectionHeaderCount + ($firstFieldIsSectionHeader ? 0 : 1));
+                $fallbackSectionIndex = 0;
+                $errorSection = 0;
+                $errorFieldKey = collect($errors->keys())->first(fn($key) => str_starts_with($key, 'field_'));
+                $errorField = $errorFieldKey
+                    ? $form->fields->firstWhere('id', (int) str_replace('field_', '', $errorFieldKey))
+                    : null;
+                if ($errorField) {
+                    $errorConfiguredSectionIndex = $configuredSections->search(
+                        fn($section) => $section->id === $errorField->section_id,
+                    );
+                    $errorSection = $usesConfiguredSections && $errorConfiguredSectionIndex !== false
+                        ? $errorConfiguredSectionIndex
+                        : $form->fields->takeUntil(fn($field) => $field->id === $errorField->id)
+                            ->where('type', 'section_header')->count();
+                }
+            @endphp
+
             <form method="POST" action="{{ route('forms.public.submit', $form) }}" enctype="multipart/form-data"
-                class="public-form-body">
+                class="public-form-body" novalidate>
                 @csrf
 
-                <div class="public-meta-row">
+                <div class="public-meta-row" x-show="!multiSection || currentSection === 0">
                     <div class="public-field-group public-field-half">
                         <label for="_name" class="public-label">Full Name</label>
                         <input id="_name" name="_name" type="text" value="{{ old('_name') }}"
@@ -53,6 +78,16 @@
 
                 @foreach ($form->fields as $field)
                     @php
+                        if (!$usesConfiguredSections && $field->type === 'section_header' && !$loop->first) {
+                            $fallbackSectionIndex++;
+                        }
+
+                        $configuredSectionIndex = $configuredSections->search(
+                            fn($section) => $section->id === $field->section_id,
+                        );
+                        $fieldSection = $usesConfiguredSections && $configuredSectionIndex !== false
+                            ? $configuredSectionIndex
+                            : $fallbackSectionIndex;
                         $fieldName = 'field_' . $field->id;
                         $conditions = $field->conditions
                             ->map(
@@ -66,7 +101,8 @@
                             ->toArray();
                     @endphp
 
-                    <div class="public-question-block" x-show="visible[{{ $field->id }}] !== false"
+                    <div class="public-question-block"
+                        x-show="(!multiSection || currentSection === {{ $fieldSection }}) && visible[{{ $field->id }}] !== false"
                         x-init="register({{ $field->id }}, {{ json_encode($conditions) }})" style="display: none">
 
                         @if ($field->type === 'section_header')
@@ -197,7 +233,7 @@
                                 @endif
 
                                 @error($fieldName)
-                                    <div class="public-error-message">{{ $message }}</div>
+                                    <div class="public-error-message" x-show="!hasNavigated">{{ $message }}</div>
                                 @enderror
                             </div>
                         @endif
@@ -205,14 +241,37 @@
                 @endforeach
 
                 @if ($errors->any())
-                    <div class="public-form-alert">
+                    <div class="public-form-alert" x-show="!hasNavigated">
                         <i class="fas fa-exclamation-circle"></i>
-                        <span>Please check the highlighted fields and try again.</span>
+                        <div>
+                            <p>Please check the highlighted fields and try again.</p>
+                            <ul>
+                                @foreach ($errors->messages() as $key => $messages)
+                                    @foreach ($messages as $message)
+                                        <li>
+                                            @if (str_starts_with($key, 'field_'))
+                                                {{ optional($form->fields->firstWhere('id', (int) str_replace('field_', '', $key)))->label ?? $key }}:
+                                            @endif
+                                            {{ $message }}
+                                        </li>
+                                    @endforeach
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
                 @endif
 
                 <div class="public-submit-row">
-                    <button type="submit" class="public-submit-button">
+                    <button type="button" class="public-submit-button" x-show="multiSection && currentSection > 0"
+                        @click="previousSection()">
+                        Back
+                    </button>
+                    <button type="button" class="public-submit-button" x-show="multiSection && currentSection < sectionCount - 1"
+                        @click="nextSection()">
+                        Next
+                    </button>
+                    <button type="submit" class="public-submit-button"
+                        x-show="!multiSection || currentSection === sectionCount - 1">
                         {{ $form->submit_button_text ?? 'Submit' }}
                     </button>
                 </div>
@@ -223,9 +282,25 @@
     <script>
         function publicFormState() {
             return {
+                multiSection: @json((bool) $form->is_multi_section),
+                sectionCount: {{ $sectionCount }},
+                currentSection: {{ $errorSection }},
+                hasNavigated: false,
                 values: {},
                 conditions: {},
                 visible: {},
+                nextSection() {
+                    this.hasNavigated = true;
+                    if (this.currentSection < this.sectionCount - 1) {
+                        this.currentSection++;
+                    }
+                },
+                previousSection() {
+                    this.hasNavigated = true;
+                    if (this.currentSection > 0) {
+                        this.currentSection--;
+                    }
+                },
                 register(fieldId, conds) {
                     this.visible[fieldId] = true;
                     if (conds && conds.length > 0) {
