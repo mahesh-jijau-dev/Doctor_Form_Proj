@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Doctor;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateDoctorRequest extends FormRequest
 {
@@ -14,14 +15,15 @@ class UpdateDoctorRequest extends FormRequest
 
     public function rules(): array
     {
-        $doctorId = $this->route('doctor');
+        $doctor = $this->route('doctor');
 
-        // Retrieve the associated user ID so we can exclude it from the unique check
-        $userId = Doctor::find($doctorId)?->user_id;
+        $userId = $doctor instanceof Doctor
+            ? $doctor->user_id
+            : Doctor::query()->findOrFail($doctor)->user_id;
 
         return [
             'name'           => ['required', 'string', 'max:255'],
-            'email'          => ['required', 'email', "unique:users,email,{$userId}"],
+            'email'          => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
             'phone'          => ['nullable', 'string', 'max:20'],
             'password'       => ['nullable', 'string', 'min:8'],
             'specialty'      => ['nullable', 'string', 'max:255'],

@@ -13,6 +13,7 @@ class DashboardController extends Controller
 
         $assignedFormIds = FormAssignment::where('doctor_id', $user->id)
             ->where('is_active', true)
+            ->whereHas('form')
             ->pluck('form_id');
 
         $stats = [
@@ -37,6 +38,7 @@ class DashboardController extends Controller
         $assignedForms = FormAssignment::with(['form' => fn($q) => $q->withCount('responses')])
             ->where('doctor_id', $user->id)
             ->where('is_active', true)
+            ->whereHas('form')
             ->latest()
             ->limit(5)
             ->get();

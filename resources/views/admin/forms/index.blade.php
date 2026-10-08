@@ -39,7 +39,7 @@
     @else
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         @foreach($forms as $form)
-        <div class="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+        <div class="card p-5 flex h-full flex-col gap-3 hover:shadow-md transition-shadow">
             <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
                     <h3 class="font-semibold text-theme-text truncate">{{ $form->title }}</h3>
@@ -66,7 +66,7 @@
                 <span><i class="fas fa-user-doctor mr-1"></i>{{ $form->assignments_count ?? 0 }} doctors</span>
             </div>
 
-            <div class="flex flex-wrap gap-1.5 pt-1 border-t border-theme">
+            <div class="mt-auto flex flex-wrap gap-1.5 pt-1 border-t border-theme">
                 <a href="{{ route('admin.forms.builder', $form) }}" class="btn btn-sm btn-primary">
                     <i class="fas fa-tools"></i> Builder
                 </a>
@@ -78,6 +78,9 @@
                 </a>
 
                 @if($form->status === 'published')
+                <button type="button" class="btn btn-sm btn-secondary copy-public-link" data-public-link="{{ route('forms.public.show', $form) }}" title="Copy public link">
+                    <i class="fas fa-link"></i>
+                </button>
                 <form action="{{ route('admin.forms.unpublish', $form) }}" method="POST" class="inline">
                     @csrf @method('PATCH')
                     <button type="submit" class="btn btn-sm btn-warning" title="Unpublish">
@@ -123,4 +126,42 @@
     @endif
     @endif
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.copy-public-link').forEach(function (button) {
+            button.addEventListener('click', async function () {
+                const url = button.dataset.publicLink;
+
+                try {
+                    await navigator.clipboard.writeText(url);
+                    const previous = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.title = 'Copied!';
+                    setTimeout(function () {
+                        button.innerHTML = previous;
+                        button.title = 'Copy public link';
+                    }, 1200);
+                } catch (error) {
+                    const temp = document.createElement('textarea');
+                    temp.value = url;
+                    temp.setAttribute('readonly', '');
+                    temp.style.position = 'fixed';
+                    temp.style.opacity = '0';
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    button.title = 'Copied!';
+                    const previous = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(function () {
+                        button.innerHTML = previous;
+                        button.title = 'Copy public link';
+                    }, 1200);
+                }
+            });
+        });
+    });
+</script>
 @endsection

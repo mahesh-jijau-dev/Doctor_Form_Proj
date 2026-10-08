@@ -11,6 +11,12 @@ class PublicFormAccessTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_home_page_redirects_to_login(): void
+    {
+        $this->get(route('home'))
+            ->assertRedirect(route('login'));
+    }
+
     public function test_published_form_is_accessible_publicly(): void
     {
         $user = User::factory()->create([

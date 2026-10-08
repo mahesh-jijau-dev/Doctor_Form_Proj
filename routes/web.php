@@ -6,8 +6,8 @@ use App\Http\Controllers\Doctor;
 use App\Http\Controllers\PublicFormController;
 use Illuminate\Support\Facades\Route;
 
-// Public landing page
-Route::get('/', [PublicFormController::class, 'index'])->name('home');
+// Send visitors directly to sign in.
+Route::redirect('/', '/login')->name('home');
 
 // Auth routes
 Route::middleware('guest')->group(function () {
