@@ -19,7 +19,7 @@ $builderFields = $form->fields->map(function($f) {
                                       'action'             => $c->action,
                                   ];
                               })->toArray(),
-        'settings'         => $f->settings ?: new stdClass(),
+        'settings'         => array_merge(['points' => 1, 'correct_answers' => []], $f->settings ?? []),
         'validation_rules' => $f->validation_rules ?: new stdClass(),
         'width'            => $f->width ?? 'full',
     ];
@@ -131,6 +131,13 @@ $builderFields = $form->fields->map(function($f) {
                class="text-xl font-bold w-full bg-transparent border-0 outline-none text-theme-text mb-1 focus:ring-0" @input="markDirty()">
         <input type="text" x-model="formDescription" placeholder="Form description (optional)"
                class="text-sm w-full bg-transparent border-0 outline-none text-theme-muted focus:ring-0" @input="markDirty()">
+        <label class="mt-4 flex items-start gap-2 border-t border-theme pt-3 text-sm text-theme-text">
+          <input type="checkbox" x-model="showScore" @change="markDirty()" class="mt-0.5 rounded border-theme text-theme-primary focus:ring-theme-primary">
+          <span>
+            <span class="block font-medium">Show score after submission</span>
+            <span class="block text-xs text-theme-muted">Respondents will see their points on the confirmation page.</span>
+          </span>
+        </label>
       </div>
 
       {{-- Fields list (sortable) --}}
@@ -230,7 +237,7 @@ $builderFields = $form->fields->map(function($f) {
                   <div class="flex items-center gap-1.5">
                     <i class="fas fa-grip-vertical text-xs text-theme-muted"></i>
                     <input type="text" x-model="opt.label"
-                           @input="opt.value = opt.label.toLowerCase().replace(/[^a-z0-9]+/g,'_'); markDirty()"
+                           @input="updateOptionLabel(opt)"
                            class="input-base text-sm flex-1 py-1.5" placeholder="Option label">
                     <button @click="selected.options.splice(oi,1); markDirty()" class="w-6 h-6 flex items-center justify-center text-theme-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                       <i class="fas fa-times text-xs"></i>
@@ -242,6 +249,36 @@ $builderFields = $form->fields->map(function($f) {
                       class="btn btn-ghost btn-sm mt-2 w-full text-left">
                 <i class="fas fa-plus text-xs"></i> Add Option
               </button>
+            </div>
+          </template>
+
+          {{-- Quiz scoring --}}
+          <template x-if="['multiple_choice','checkbox','dropdown'].includes(selected.type)">
+            <div class="border-t border-theme pt-3 space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-theme-muted mb-1 uppercase tracking-wide">Points</label>
+                <input type="number" min="1" max="100" step="1"
+                       x-model.number="selected.settings.points" @input="markDirty()"
+                       class="input-base text-sm" aria-label="Points for correct answer">
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-theme-muted mb-2 uppercase tracking-wide">Correct Answer</p>
+                <p class="text-xs text-theme-muted mb-2"
+                   x-text="selected.type === 'checkbox' ? 'Select every correct option.' : 'Choose the correct option.'"></p>
+                <div class="space-y-1.5">
+                  <template x-for="(opt, oi) in selected.options" :key="oi">
+                    <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-theme-text hover:bg-theme-surface-2">
+                      <input :type="selected.type === 'checkbox' ? 'checkbox' : 'radio'"
+                             :name="'correct-answer-' + selected.id"
+                             :checked="(selected.settings.correct_answers || []).includes(opt.value)"
+                             @change="setCorrectAnswer(opt.value, $event.target.checked)"
+                             class="border-theme text-theme-primary focus:ring-theme-primary">
+                      <span x-text="opt.label || 'Untitled option'"></span>
+                    </label>
+                  </template>
+                  <p x-show="!selected.options.length" class="text-xs text-theme-muted">Add options above before setting a correct answer.</p>
+                </div>
+              </div>
             </div>
           </template>
 
@@ -387,6 +424,8 @@ function formBuilder() {
   return {
     formTitle: @json($form->title),
     formDescription: @json($form->description ?? ''),
+    formSettings: @json($form->settings ?? []),
+    showScore: @json((bool) data_get($form->settings, 'show_score', false)),
     fields: @json($builderFields),
     selectedId: null,
     isDirty: false,
@@ -439,7 +478,7 @@ function formBuilder() {
             ...data.field,
             options: data.field.options || [],
             conditions: [],
-            settings: data.field.settings || {},
+            settings: { points: 1, correct_answers: [], ...(data.field.settings || {}) },
             validation_rules: data.field.validation_rules || {}
           };
           this.fields.push(f);
@@ -474,6 +513,7 @@ function formBuilder() {
         copy.label = field.label + ' (Copy)';
         copy.is_required = field.is_required;
         copy.placeholder = field.placeholder;
+        copy.settings = JSON.parse(JSON.stringify(field.settings || {}));
         if (field.options?.length) {
           copy.options = JSON.parse(JSON.stringify(field.options));
         }
@@ -481,10 +521,31 @@ function formBuilder() {
       }
     },
 
+    updateOptionLabel(option) {
+      const previousValue = option.value;
+      option.value = option.label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      this.selected.settings.correct_answers = (this.selected.settings.correct_answers || [])
+        .map(value => value === previousValue ? option.value : value);
+      this.markDirty();
+    },
+
+    setCorrectAnswer(value, checked) {
+      const correctAnswers = this.selected.settings.correct_answers || [];
+      if (this.selected.type === 'checkbox') {
+        this.selected.settings.correct_answers = checked
+          ? [...new Set([...correctAnswers, value])]
+          : correctAnswers.filter(answer => answer !== value);
+      } else {
+        this.selected.settings.correct_answers = checked ? [value] : [];
+      }
+      this.markDirty();
+    },
+
     getPayload() {
       return {
         title: this.formTitle,
         description: this.formDescription,
+        settings: { ...this.formSettings, show_score: !!this.showScore },
         fields: this.fields.map((f, i) => ({
           id: typeof f.id === 'number' ? f.id : null,
           type: f.type,

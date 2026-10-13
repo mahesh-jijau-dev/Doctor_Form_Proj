@@ -18,6 +18,8 @@ class FormResponseService
     public function storeResponse(Form $form, array $data, Request $request, ?int $doctorId = null): FormResponse
     {
         return DB::transaction(function () use ($form, $data, $request, $doctorId) {
+            [$quizScore, $quizMaxScore] = $this->calculateQuizScore($form, $data);
+
             $response = FormResponse::create([
                 'form_id'             => $form->id,
                 'form_version'        => $form->version,
@@ -28,6 +30,8 @@ class FormResponseService
                 'user_agent'          => $request->userAgent(),
                 'submitted_at'        => now(),
                 'is_complete'         => true,
+                'quiz_score'          => $quizMaxScore > 0 ? $quizScore : null,
+                'quiz_max_score'      => $quizMaxScore > 0 ? $quizMaxScore : null,
             ]);
 
             $fields = $form->fields()->with('options')->get();
@@ -75,6 +79,59 @@ class FormResponseService
 
             return $response;
         });
+    }
+
+    /**
+     * Calculate points only for configured choice questions; checkbox questions
+     * require the respondent's complete selection to match the answer key.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function calculateQuizScore(Form $form, array $data): array
+    {
+        $score = 0.0;
+        $maxScore = 0.0;
+        $fields = $form->fields()->with('options')->get();
+
+        foreach ($fields as $field) {
+            if (! in_array($field->type, ['multiple_choice', 'checkbox', 'dropdown'], true)) {
+                continue;
+            }
+
+            $settings = $field->settings ?? [];
+            $correctAnswers = array_values(array_unique(array_map(
+                'strval',
+                $settings['correct_answers'] ?? []
+            )));
+            $points = (float) ($settings['points'] ?? 1);
+
+            if ($correctAnswers === [] || $points <= 0) {
+                continue;
+            }
+
+            $validOptionValues = $field->options
+                ->map(fn ($option) => (string) ($option->value ?: $option->label))
+                ->all();
+            if (array_diff($correctAnswers, $validOptionValues) !== []) {
+                continue;
+            }
+
+            $maxScore += $points;
+            $rawAnswer = $data['field_' . $field->id] ?? null;
+            $answers = is_array($rawAnswer)
+                ? $rawAnswer
+                : ($rawAnswer === null || $rawAnswer === '' ? [] : [$rawAnswer]);
+            $answers = array_values(array_unique(array_map('strval', $answers)));
+
+            sort($correctAnswers, SORT_STRING);
+            sort($answers, SORT_STRING);
+
+            if ($answers === $correctAnswers) {
+                $score += $points;
+            }
+        }
+
+        return [$score, $maxScore];
     }
 
     /**

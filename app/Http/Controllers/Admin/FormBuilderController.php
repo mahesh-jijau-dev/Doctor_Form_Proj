@@ -40,6 +40,9 @@ class FormBuilderController extends Controller
             'is_required' => false,
             'is_visible' => true,
             'width' => 'full',
+            'settings' => in_array($request->type, ['multiple_choice', 'checkbox', 'dropdown'], true)
+                ? ['points' => 1, 'correct_answers' => []]
+                : null,
         ]);
 
         // Add default options for option-type fields

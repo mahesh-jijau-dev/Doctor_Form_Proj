@@ -61,6 +61,15 @@
             </div>
 
             <div class="response-values-card">
+                @if($response->quiz_max_score > 0)
+                <div class="border-b border-theme bg-theme-surface-2 px-5 py-4">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-theme-muted">Quiz Score</p>
+                    <p class="mt-1 text-lg font-bold text-theme-primary">
+                        {{ rtrim(rtrim(number_format((float) $response->quiz_score, 2), '0'), '.') }}
+                        / {{ rtrim(rtrim(number_format((float) $response->quiz_max_score, 2), '0'), '.') }} points
+                    </p>
+                </div>
+                @endif
                 <div class="response-values-header">
                     <h3><i class="fas fa-list-check"></i> Response Data</h3>
                 </div>

@@ -34,6 +34,8 @@ class FormResponse extends Model
         'submitted_at',
         'is_complete',
         'metadata',
+        'quiz_score',
+        'quiz_max_score',
     ];
 
     /**
@@ -48,6 +50,8 @@ class FormResponse extends Model
             'submitted_at' => 'datetime',
             'metadata'     => 'array',
             'form_version' => 'integer',
+            'quiz_score' => 'decimal:2',
+            'quiz_max_score' => 'decimal:2',
         ];
     }
 

@@ -56,9 +56,9 @@ class PublicFormController extends Controller
             }
         }
 
-        $this->responseService->storeResponse($form, $request->all(), $request);
+        $response = $this->responseService->storeResponse($form, $request->all(), $request);
 
-        return view('public.thank-you', compact('form'));
+        return view('public.thank-you', compact('form', 'response'));
     }
 
     protected function buildValidationRules(Form $form, Request $request): array
