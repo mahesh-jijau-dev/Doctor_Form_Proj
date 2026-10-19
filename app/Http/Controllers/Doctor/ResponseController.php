@@ -55,7 +55,7 @@ class ResponseController extends Controller
     public function show(FormResponse $response)
     {
         $this->authorize('view', $response);
-        $response->load(['form.fields', 'values', 'assignedDoctor']);
+        $response->load(['form.fields.options', 'values.field.options', 'assignedDoctor']);
         return view('doctor.responses.show', compact('response'));
     }
 
@@ -88,14 +88,14 @@ class ResponseController extends Controller
     public function exportResponse(FormResponse $response)
     {
         $this->authorize('export', $response);
-        $response->load(['form', 'values', 'assignedDoctor']);
+        $response->load(['form', 'values.field.options', 'assignedDoctor']);
         return $this->exportService->exportResponseCsv($response);
     }
 
     public function exportResponsePdf(FormResponse $response)
     {
         $this->authorize('export', $response);
-        $response->load(['form', 'values', 'assignedDoctor']);
+        $response->load(['form', 'values.field.options', 'assignedDoctor']);
         return $this->exportService->exportResponsePdf($response);
     }
 }

@@ -77,11 +77,29 @@ class ExportService
             fputcsv($handle, ['Email', $response->submitted_by_email ?? '']);
             fputcsv($handle, ['Doctor', $response->assignedDoctor?->name ?? 'N/A']);
             fputcsv($handle, ['Submitted At', $response->submitted_at?->format('Y-m-d H:i:s') ?? '']);
+            if ($response->quiz_max_score > 0) {
+                fputcsv($handle, [
+                    'Total Score',
+                    rtrim(rtrim(number_format((float) $response->quiz_score, 2), '0'), '.')
+                        . ' / '
+                        . rtrim(rtrim(number_format((float) $response->quiz_max_score, 2), '0'), '.'),
+                ]);
+                if ($response->quiz_interpretation) {
+                    fputcsv($handle, ['Assessment Result', $response->quiz_interpretation['title']]);
+                    fputcsv($handle, ['Interpretation', $response->quiz_interpretation['summary']]);
+                }
+            }
             fputcsv($handle, []);
-            fputcsv($handle, ['Field', 'Answer']);
+            fputcsv($handle, ['Field', 'Answer', 'Correct Answer', 'Score']);
 
             foreach ($response->values as $value) {
-                fputcsv($handle, [$value->field_label, $value->getDisplayValue()]);
+                $score = $value->getAwardedScore();
+                fputcsv($handle, [
+                    $value->field_label,
+                    $value->getDisplayValue(),
+                    $value->getCorrectAnswerDisplay() ?? '',
+                    $score === null ? '' : rtrim(rtrim(number_format($score, 2), '0'), '.'),
+                ]);
             }
 
             fclose($handle);

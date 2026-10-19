@@ -71,10 +71,107 @@ class FormResponseValue extends Model
      */
     public function getDisplayValue(): string
     {
-        if (is_array($this->values) && ! empty($this->values)) {
-            return implode(', ', $this->values);
+        $answers = is_array($this->values) && ! empty($this->values)
+            ? array_map('strval', $this->values)
+            : ($this->value === null ? [] : [(string) $this->value]);
+
+        if ($answers === []) {
+            return '-';
         }
 
-        return $this->value ?? '-';
+        $options = $this->field?->options ?? collect();
+        $labels = collect($answers)->map(function (string $answer) use ($options) {
+            $option = $options->first(fn ($option) =>
+                (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label) === $answer
+            );
+
+            return $option?->label ?? $answer;
+        });
+
+        return $labels->implode(', ');
+    }
+
+    public function getCorrectAnswerDisplay(): ?string
+    {
+        $field = $this->field;
+        $correctAnswers = data_get($field?->settings, 'correct_answers', []);
+
+        if (! is_array($correctAnswers) || $correctAnswers === []) {
+            return null;
+        }
+
+        $options = $field->options;
+        $labels = collect($correctAnswers)->map(function ($answer) use ($options) {
+            $answer = (string) $answer;
+            $option = $options->first(fn ($option) =>
+                (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label) === $answer
+            );
+
+            return $option?->label;
+        })->filter();
+
+        return $labels->isNotEmpty() ? $labels->implode(', ') : null;
+    }
+
+    public function getAwardedScore(): ?float
+    {
+        $field = $this->field;
+
+        if (! $field) {
+            return null;
+        }
+
+        $answers = is_array($this->values) && ! empty($this->values)
+            ? array_map('strval', $this->values)
+            : ($this->value === null ? [] : [(string) $this->value]);
+        $options = $field->options;
+        $scoredOptions = $options->filter(fn ($option) => $option->score !== null);
+        $assessmentScored = (bool) data_get($field->settings, 'assessment_scored');
+
+        if ($scoredOptions->isNotEmpty() || $assessmentScored) {
+            $scoreByValue = $options->mapWithKeys(function ($option) use ($assessmentScored) {
+                $value = (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label);
+                $score = $option->score;
+
+                if ($score === null && $assessmentScored && is_numeric($value)) {
+                    $score = (float) $value;
+                }
+
+                return $score === null ? [] : [$value => (float) $score];
+            });
+
+            if ($scoreByValue->isNotEmpty()) {
+                return collect($answers)->sum(fn (string $answer) => $scoreByValue->get($answer, 0.0));
+            }
+        }
+
+        $correctAnswers = array_map('strval', data_get($field->settings, 'correct_answers', []));
+        if ($correctAnswers === []) {
+            return null;
+        }
+
+        sort($correctAnswers, SORT_STRING);
+        sort($answers, SORT_STRING);
+
+        return $answers === $correctAnswers
+            ? (float) data_get($field->settings, 'points', 1)
+            : 0.0;
+    }
+
+    public function getExportDisplayValue(): string
+    {
+        $details = ['Answer: ' . $this->getDisplayValue()];
+        $correctAnswer = $this->getCorrectAnswerDisplay();
+        $score = $this->getAwardedScore();
+
+        if ($correctAnswer !== null) {
+            $details[] = 'Correct answer: ' . $correctAnswer;
+        }
+
+        if ($score !== null) {
+            $details[] = 'Score: ' . rtrim(rtrim(number_format($score, 2), '0'), '.') . ' points';
+        }
+
+        return implode(' | ', $details);
     }
 }

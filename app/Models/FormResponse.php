@@ -87,4 +87,39 @@ class FormResponse extends Model
     {
         return $this->values->firstWhere('field_id', $fieldId);
     }
+
+    public function getQuizInterpretationAttribute(): ?array
+    {
+        if (
+            data_get($this->form?->settings, 'scoring_mode') !== 'weighted_options'
+            || $this->quiz_score === null
+        ) {
+            return null;
+        }
+
+        $score = (int) $this->quiz_score;
+
+        return match (true) {
+            $score <= 12 => [
+                'range' => '0–12',
+                'title' => 'Sattva-dominant range',
+                'summary' => 'Your responses suggest strong cognitive engagement, focus, and learning habits.',
+            ],
+            $score <= 26 => [
+                'range' => '13–26',
+                'title' => 'Rajasic influence — mild',
+                'summary' => 'Your responses suggest good intellectual capacity, with some restlessness or room to strengthen focus.',
+            ],
+            $score <= 40 => [
+                'range' => '27–40',
+                'title' => 'High Rajas / early Tamas — moderate',
+                'summary' => 'Your responses suggest that stress, focus, or learning habits may be worth reflecting on and supporting.',
+            ],
+            default => [
+                'range' => '41–54',
+                'title' => 'Tamas-dominant range — higher score',
+                'summary' => 'Your responses suggest that intellectual engagement and daily habits may need additional support.',
+            ],
+        };
+    }
 }

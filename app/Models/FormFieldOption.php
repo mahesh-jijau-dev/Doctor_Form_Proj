@@ -26,6 +26,7 @@ class FormFieldOption extends Model
         'field_id',
         'label',
         'value',
+        'score',
         'order_index',
         'is_other',
     ];
@@ -40,6 +41,7 @@ class FormFieldOption extends Model
         return [
             'order_index' => 'integer',
             'is_other'    => 'boolean',
+            'score'       => 'decimal:2',
         ];
     }
 

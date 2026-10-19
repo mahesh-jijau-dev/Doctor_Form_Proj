@@ -85,6 +85,23 @@ class PublicFormController extends Controller
                 $fieldRules[] = 'numeric';
             }
 
+            if (
+                (data_get($form->settings, 'scoring_mode') === 'weighted_options'
+                    && data_get($field->settings, 'assessment_scored'))
+                || $field->options->contains(fn ($option) => $option->score !== null)
+            ) {
+                $validValues = $field->options
+                    ->map(fn ($option) => (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label))
+                    ->all();
+                if ($field->type === 'checkbox') {
+                    $fieldRules[] = 'array';
+                    $rules[$fieldName . '.*'] = ['in:' . implode(',', $validValues)];
+                } else {
+                    $fieldRules[] = 'string';
+                    $fieldRules[] = 'in:' . implode(',', $validValues);
+                }
+            }
+
             if ($field->type === 'file') {
                 $fieldRules[] = 'file';
                 $fieldRules[] = 'mimes:pdf,doc,docx,txt,rtf,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp';

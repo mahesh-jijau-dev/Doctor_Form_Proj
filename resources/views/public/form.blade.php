@@ -167,8 +167,8 @@
                                         class="public-input {{ $hasError ? 'is-invalid' : '' }}">
                                         <option value="">Select an option</option>
                                         @foreach ($field->options as $option)
-                                            <option value="{{ $option->value ?: $option->label }}"
-                                                {{ old($fieldName) == ($option->value ?: $option->label) ? 'selected' : '' }}>
+                                            <option value="{{ $option->value !== null && $option->value !== '' ? $option->value : $option->label }}"
+                                                {{ old($fieldName) == ($option->value !== null && $option->value !== '' ? $option->value : $option->label) ? 'selected' : '' }}>
                                                 {{ $option->label }}
                                             </option>
                                         @endforeach
@@ -178,8 +178,8 @@
                                         @foreach ($field->options as $option)
                                             <label class="public-option-item">
                                                 <input type="radio" name="{{ $fieldName }}"
-                                                    value="{{ $option->value ?: $option->label }}"
-                                                    {{ old($fieldName) == ($option->value ?: $option->label) ? 'checked' : '' }}>
+                                                    value="{{ $option->value !== null && $option->value !== '' ? $option->value : $option->label }}"
+                                                    {{ old($fieldName) == ($option->value !== null && $option->value !== '' ? $option->value : $option->label) ? 'checked' : '' }}>
                                                 <span>{{ $option->label }}</span>
                                             </label>
                                         @endforeach
@@ -189,8 +189,8 @@
                                         @foreach ($field->options as $option)
                                             <label class="public-option-item">
                                                 <input type="checkbox" name="{{ $fieldName }}[]"
-                                                    value="{{ $option->value ?: $option->label }}"
-                                                    {{ is_array(old($fieldName)) && in_array($option->value ?: $option->label, old($fieldName)) ? 'checked' : '' }}>
+                                                    value="{{ $option->value !== null && $option->value !== '' ? $option->value : $option->label }}"
+                                                    {{ is_array(old($fieldName)) && in_array($option->value !== null && $option->value !== '' ? $option->value : $option->label, old($fieldName)) ? 'checked' : '' }}>
                                                 <span>{{ $option->label }}</span>
                                             </label>
                                         @endforeach

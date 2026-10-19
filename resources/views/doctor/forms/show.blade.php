@@ -181,7 +181,7 @@
                                 <select disabled class="input-base w-full sm:w-64 opacity-60 cursor-not-allowed">
                                     <option value="">{{ $field->placeholder ?? 'Select an option' }}</option>
                                     @foreach($field->options as $option)
-                                    <option value="{{ $option->value ?: $option->label }}">
+                                    <option value="{{ $option->value !== null && $option->value !== '' ? $option->value : $option->label }}">
                                         {{ $option->label }}
                                     </option>
                                     @endforeach

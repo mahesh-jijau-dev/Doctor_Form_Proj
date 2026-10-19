@@ -9,7 +9,7 @@ $builderFields = $form->fields->map(function($f) {
         'is_required'      => (bool) $f->is_required,
         'order_index'      => $f->order_index,
         'options'          => $f->options->map(function($o) {
-                                  return ['id' => $o->id, 'label' => $o->label, 'value' => $o->value];
+                                  return ['id' => $o->id, 'label' => $o->label, 'value' => $o->value, 'score' => $o->score];
                               })->toArray(),
         'conditions'       => $f->conditions->map(function($c) {
                                   return [
@@ -138,6 +138,11 @@ $builderFields = $form->fields->map(function($f) {
             <span class="block text-xs text-theme-muted">Respondents will see their points on the confirmation page.</span>
           </span>
         </label>
+        <div x-show="showScore && !hasConfiguredScoring()"
+             class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200"
+             role="status">
+          Score display is on, but no scoring is configured yet. Add a score to every option, or set correct answers and points for a quiz. No score will appear until at least one question is scored.
+        </div>
       </div>
 
       {{-- Fields list (sortable) --}}
@@ -231,17 +236,34 @@ $builderFields = $form->fields->map(function($f) {
           {{-- Options --}}
           <template x-if="['multiple_choice','checkbox','dropdown'].includes(selected.type)">
             <div class="border-t border-theme pt-3">
-              <p class="text-xs font-semibold text-theme-muted mb-2 uppercase tracking-wide">Options</p>
+              <p class="text-xs font-semibold text-theme-muted mb-2 uppercase tracking-wide"
+                 x-text="isWeightedAssessmentField(selected) ? 'Options and assigned points' : 'Options'"></p>
+              <p class="text-xs text-theme-muted mb-2">
+                Set a score for every option to score the selected answer. Leave every score blank to use correct-answer scoring.
+              </p>
               <div class="space-y-1.5" id="optionsContainer">
                 <template x-for="(opt, oi) in selected.options" :key="oi">
-                  <div class="flex items-center gap-1.5">
-                    <i class="fas fa-grip-vertical text-xs text-theme-muted"></i>
-                    <input type="text" x-model="opt.label"
-                           @input="updateOptionLabel(opt)"
-                           class="input-base text-sm flex-1 py-1.5" placeholder="Option label">
-                    <button @click="selected.options.splice(oi,1); markDirty()" class="w-6 h-6 flex items-center justify-center text-theme-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                      <i class="fas fa-times text-xs"></i>
-                    </button>
+                  <div class="rounded-lg border border-theme bg-theme-surface-2 p-2.5 space-y-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <i class="fas fa-grip-vertical text-xs text-theme-muted flex-shrink-0"></i>
+                      <input type="text" x-model="opt.label"
+                             @input="updateOptionLabel(opt)"
+                             class="input-base text-sm min-w-0 flex-1 py-2" placeholder="Option text">
+                      <button type="button" @click="selected.options.splice(oi,1); markDirty()"
+                              class="w-8 h-8 flex-shrink-0 flex items-center justify-center text-theme-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                              :aria-label="'Remove ' + (opt.label || 'option')">
+                        <i class="fas fa-times text-xs"></i>
+                      </button>
+                    </div>
+                    <label class="grid items-center gap-2 text-xs font-medium text-theme-muted"
+                           style="grid-template-columns: minmax(0, 1fr) 6.5rem">
+                      <span>Score for this answer</span>
+                      <input type="number" min="0" max="100" step="0.01"
+                             x-model="opt.score" @input="markDirty()"
+                             class="input-base text-sm py-2 text-right"
+                             :aria-label="'Score for ' + (opt.label || 'option')"
+                             placeholder="Optional">
+                    </label>
                   </div>
                 </template>
               </div>
@@ -254,7 +276,10 @@ $builderFields = $form->fields->map(function($f) {
 
           {{-- Quiz scoring --}}
           <template x-if="['multiple_choice','checkbox','dropdown'].includes(selected.type)">
-            <div class="border-t border-theme pt-3 space-y-3">
+            <div x-show="!isWeightedAssessmentField(selected) && !hasOptionScores(selected)" class="border-t border-theme pt-3 space-y-3">
+              <p class="text-xs text-theme-muted">
+                These settings apply only when no individual option scores are entered.
+              </p>
               <div>
                 <label class="block text-xs font-semibold text-theme-muted mb-1 uppercase tracking-wide">Points</label>
                 <input type="number" min="1" max="100" step="1"
@@ -400,7 +425,7 @@ $builderFields = $form->fields->map(function($f) {
         'is_required'      => (bool) $f->is_required,
         'order_index'      => $f->order_index,
         'options'          => $f->options->map(function($o) {
-                                  return ['id' => $o->id, 'label' => $o->label, 'value' => $o->value];
+                                  return ['id' => $o->id, 'label' => $o->label, 'value' => $o->value, 'score' => $o->score];
                               })->toArray(),
         'conditions'       => $f->conditions->map(function($c) {
                                   return [
@@ -462,6 +487,22 @@ function formBuilder() {
 
     markDirty() { this.isDirty = true; this.justSaved = false; },
 
+    isWeightedAssessmentField(field) {
+      return this.formSettings.scoring_mode === 'weighted_options' && !!field?.settings?.assessment_scored;
+    },
+
+    hasOptionScores(field) {
+      return (field?.options || []).some(option => option.score !== null && option.score !== undefined && option.score !== '');
+    },
+
+    hasConfiguredScoring() {
+      return this.fields.some(field =>
+        this.isWeightedAssessmentField(field)
+        || this.hasOptionScores(field)
+        || ((field.settings?.correct_answers || []).length > 0 && Number(field.settings?.points || 0) > 0)
+      );
+    },
+
     async addField(type) {
       try {
         const res = await fetch('{{ route("admin.forms.builder.add-field", $form) }}', {
@@ -522,6 +563,11 @@ function formBuilder() {
     },
 
     updateOptionLabel(option) {
+      if (this.isWeightedAssessmentField(this.selected)) {
+        this.markDirty();
+        return;
+      }
+
       const previousValue = option.value;
       option.value = option.label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       this.selected.settings.correct_answers = (this.selected.settings.correct_answers || [])
@@ -554,7 +600,7 @@ function formBuilder() {
           placeholder: f.placeholder,
           is_required: !!f.is_required,
           order_index: i,
-          options: (f.options || []).map((o,oi) => ({ id: typeof o.id === 'number' ? o.id : null, label: o.label, value: o.value, order_index: oi })),
+          options: (f.options || []).map((o,oi) => ({ id: typeof o.id === 'number' ? o.id : null, label: o.label, value: o.value, score: o.score ?? null, order_index: oi })),
           conditions: f.conditions || [],
           settings: f.settings || {},
           validation_rules: f.validation_rules || {},
@@ -565,8 +611,9 @@ function formBuilder() {
 
     async saveDraft() {
       this.isSaving = true;
+      let res;
       try {
-        const res = await fetch('{{ route("admin.forms.builder.save", $form) }}', {
+        res = await fetch('{{ route("admin.forms.builder.save", $form) }}', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -574,22 +621,52 @@ function formBuilder() {
           },
           body: JSON.stringify(this.getPayload())
         });
-        const data = await res.json();
-        if (data.success) {
-          this.isDirty = false;
-          this.justSaved = true;
-          setTimeout(() => this.justSaved = false, 3000);
-          // Reload only if there are temp-id fields to get real IDs
-          const hasTempIds = this.fields.some(f => typeof f.id === 'string');
-          if (hasTempIds) window.location.reload();
-        } else {
-          alert('Save failed: ' + (data.message || 'Unknown error'));
-        }
-      } catch(e) {
+      } catch (error) {
         alert('Failed to save. Please check your connection.');
-      } finally {
         this.isSaving = false;
+        return;
       }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const message = res.status === 419
+          ? 'Your session has expired. Sign in again, then reopen this form and save.'
+          : `The server returned a non-JSON response (HTTP ${res.status}). Your changes were not saved.`;
+        alert(message);
+        this.isSaving = false;
+        return;
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (error) {
+        alert(`The server response could not be read (HTTP ${res.status}). Your changes were not saved.`);
+        this.isSaving = false;
+        return;
+      }
+
+      if (!res.ok) {
+        const validationMessages = Object.values(data.errors || {}).flat();
+        const detail = validationMessages.length
+          ? validationMessages.join('\n')
+          : (data.message || `HTTP ${res.status}`);
+        alert(`Save failed: ${detail}`);
+        this.isSaving = false;
+        return;
+      }
+
+      if (data.success) {
+        this.isDirty = false;
+        this.justSaved = true;
+        setTimeout(() => this.justSaved = false, 3000);
+        // Reload only if there are temp-id fields to get real IDs
+        const hasTempIds = this.fields.some(f => typeof f.id === 'string');
+        if (hasTempIds) window.location.reload();
+      } else {
+        alert('Save failed: ' + (data.message || 'The server did not confirm the save.'));
+      }
+      this.isSaving = false;
     },
 
     async saveAndPublish() {
@@ -623,10 +700,10 @@ function formBuilder() {
           return `<input type="time" class="${cls}" disabled>`;
         case 'multiple_choice':
           if (!field.options?.length) return '<p class="text-xs text-theme-muted italic">No options yet</p>';
-          return field.options.map(o => `<label class="flex items-center gap-2 py-0.5"><input type="radio" disabled class="pointer-events-none"> <span class="text-xs text-theme-muted">${o.label}</span></label>`).join('');
+          return field.options.map(o => `<label class="flex items-center gap-2 py-0.5"><input type="radio" disabled class="pointer-events-none"> <span class="text-xs text-theme-muted">${o.label}</span>${(this.isWeightedAssessmentField(field) || this.hasOptionScores(field)) && (o.score !== null && o.score !== undefined && o.score !== '' || this.isWeightedAssessmentField(field)) ? `<span class="badge badge-muted text-xs">${o.score ?? o.value} points</span>` : ''}</label>`).join('');
         case 'checkbox':
           if (!field.options?.length) return '<p class="text-xs text-theme-muted italic">No options yet</p>';
-          return field.options.map(o => `<label class="flex items-center gap-2 py-0.5"><input type="checkbox" disabled class="pointer-events-none"> <span class="text-xs text-theme-muted">${o.label}</span></label>`).join('');
+          return field.options.map(o => `<label class="flex items-center gap-2 py-0.5"><input type="checkbox" disabled class="pointer-events-none"> <span class="text-xs text-theme-muted">${o.label}</span>${this.hasOptionScores(field) && o.score !== null && o.score !== undefined && o.score !== '' ? `<span class="badge badge-muted text-xs">${o.score} points</span>` : ''}</label>`).join('');
         case 'dropdown':
           return `<select class="${cls}" disabled><option>-- Select --</option>${(field.options||[]).map(o=>`<option>${o.label}</option>`).join('')}</select>`;
         case 'file':

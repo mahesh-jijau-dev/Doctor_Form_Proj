@@ -23,7 +23,7 @@ class FormBuilderService
                 $form->update([
                     'title'                => $data['title'],
                     'description'          => $data['description'] ?? $form->description,
-                    'settings'             => $data['settings'] ?? $form->settings,
+                    'settings'             => array_merge($form->settings ?? [], $data['settings'] ?? []),
                     'is_multi_section'     => $data['is_multi_section'] ?? $form->is_multi_section,
                     'submit_button_text'   => $data['submit_button_text'] ?? $form->submit_button_text,
                     'confirmation_message' => $data['confirmation_message'] ?? $form->confirmation_message,
@@ -38,6 +38,14 @@ class FormBuilderService
             // Handle fields
             if (isset($data['fields'])) {
                 $this->syncFields($form, $data['fields']);
+                $hasOptionScores = collect($data['fields'])
+                    ->flatMap(fn ($field) => $field['options'] ?? [])
+                    ->contains(fn ($option) => isset($option['score']) && $option['score'] !== '');
+                $form->update([
+                    'settings' => array_merge($form->settings ?? [], [
+                        'option_scoring' => $hasOptionScores,
+                    ]),
+                ]);
             }
         });
     }
@@ -84,6 +92,11 @@ class FormBuilderService
                 $field = new FormField(['form_id' => $form->id]);
             }
 
+            $settings = $fieldData['settings'] ?? [];
+            if (data_get($field->settings, 'assessment_scored')) {
+                $settings['assessment_scored'] = true;
+            }
+
             $field->fill([
                 'form_id'          => $form->id,
                 'section_id'       => $fieldData['section_id'] ?? null,
@@ -97,7 +110,7 @@ class FormBuilderService
                 'is_visible'       => $fieldData['is_visible'] ?? true,
                 'order_index'      => $index,
                 'validation_rules' => $fieldData['validation_rules'] ?? null,
-                'settings'         => $fieldData['settings'] ?? null,
+                'settings'         => $settings ?: null,
                 'width'            => $fieldData['width'] ?? 'full',
             ])->save();
 
@@ -131,6 +144,7 @@ class FormBuilderService
                 'field_id'    => $field->id,
                 'label'       => $optionData['label'] ?? 'Option',
                 'value'       => $optionData['value'] ?? $optionData['label'] ?? 'option',
+                'score'       => $optionData['score'] ?? null,
                 'order_index' => $index,
                 'is_other'    => $optionData['is_other'] ?? false,
             ])->save();

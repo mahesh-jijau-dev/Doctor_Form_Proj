@@ -16,15 +16,35 @@
             Your response for <strong>{{ $form->title }}</strong> has been submitted successfully.
         </p>
         @if(data_get($form->settings, 'show_score') && $response->quiz_max_score > 0)
+            @php
+                $assessmentResult = $response->quiz_interpretation;
+            @endphp
             <div class="mb-6 rounded-xl border border-theme bg-theme-surface-2 p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-theme-muted">Your Score</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-theme-muted">
+                    {{ $assessmentResult ? 'Your Assessment Score' : 'Your Score' }}
+                </p>
                 <p class="mt-1 text-3xl font-bold text-theme-primary">
                     {{ rtrim(rtrim(number_format((float) $response->quiz_score, 2), '0'), '.') }}
                     <span class="text-lg text-theme-muted">/ {{ rtrim(rtrim(number_format((float) $response->quiz_max_score, 2), '0'), '.') }} points</span>
                 </p>
-                <p class="mt-1 text-sm text-theme-muted">
-                    {{ round(((float) $response->quiz_score / (float) $response->quiz_max_score) * 100) }}% correct
-                </p>
+                @if($assessmentResult)
+                    <div class="mt-4 border-t border-theme pt-4 text-left">
+                        <p class="text-sm font-semibold text-theme-text">
+                            {{ $assessmentResult['title'] }} ({{ $assessmentResult['range'] }})
+                        </p>
+                        <p class="mt-1 text-sm text-theme-muted">{{ $assessmentResult['summary'] }}</p>
+                        <p class="mt-3 text-xs text-theme-muted">
+                            This self-assessment is for reflection only and is not a medical diagnosis.
+                            Consult a healthcare professional about persistent or sudden cognitive concerns.
+                        </p>
+                    </div>
+                @else
+                    <p class="mt-1 text-sm text-theme-muted">
+                        {{ data_get($form->settings, 'option_scoring')
+                            ? round(((float) $response->quiz_score / (float) $response->quiz_max_score) * 100) . '% of available points'
+                            : round(((float) $response->quiz_score / (float) $response->quiz_max_score) * 100) . '% correct' }}
+                    </p>
+                @endif
             </div>
         @endif
         @if($form->confirmation_message)

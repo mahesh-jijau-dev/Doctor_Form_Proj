@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Form;
+use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\FormResponseValue;
 use Illuminate\Http\Request;
@@ -98,6 +99,17 @@ class FormResponseService
                 continue;
             }
 
+            $assessmentScored = data_get($form->settings, 'scoring_mode') === 'weighted_options'
+                && data_get($field->settings, 'assessment_scored');
+            $hasOptionScores = $field->options->contains(fn ($option) => $option->score !== null);
+
+            if ($assessmentScored || $hasOptionScores) {
+                [$fieldScore, $fieldMaxScore] = $this->calculateOptionScore($field, $data, $assessmentScored);
+                $score += $fieldScore;
+                $maxScore += $fieldMaxScore;
+                continue;
+            }
+
             $settings = $field->settings ?? [];
             $correctAnswers = array_values(array_unique(array_map(
                 'strval',
@@ -110,7 +122,7 @@ class FormResponseService
             }
 
             $validOptionValues = $field->options
-                ->map(fn ($option) => (string) ($option->value ?: $option->label))
+                ->map(fn ($option) => (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label))
                 ->all();
             if (array_diff($correctAnswers, $validOptionValues) !== []) {
                 continue;
@@ -135,11 +147,66 @@ class FormResponseService
     }
 
     /**
+     * Calculate self-assessment points where each selected option has a score value.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function calculateOptionScore(FormField $field, array $data, bool $assessmentScored): array
+    {
+        $score = 0.0;
+        $maxScore = 0.0;
+
+        if (! in_array($field->type, ['multiple_choice', 'checkbox', 'dropdown'], true)) {
+            throw new \LogicException("Option scoring is not supported for field {$field->id}.");
+        }
+
+        $optionScores = [];
+        foreach ($field->options as $option) {
+            $optionValue = (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label);
+            $optionScore = $option->score;
+
+            if ($optionScore === null && $assessmentScored && is_numeric($optionValue)) {
+                $optionScore = (float) $optionValue;
+            }
+
+            if ($optionScore === null || ! is_numeric($optionScore) || (float) $optionScore < 0) {
+                throw new \LogicException("Every option must have a non-negative score for field {$field->id}.");
+            }
+
+            $optionScores[$optionValue] = (float) $optionScore;
+        }
+
+        if ($optionScores === []) {
+            throw new \LogicException("Option scoring requires at least one option for field {$field->id}.");
+        }
+
+        if ($field->type === 'checkbox') {
+            $maxScore = array_sum($optionScores);
+        } else {
+            $maxScore = max($optionScores);
+        }
+
+        $rawAnswer = $data['field_' . $field->id] ?? null;
+        $answers = is_array($rawAnswer)
+            ? array_values(array_unique(array_map('strval', $rawAnswer)))
+            : ($rawAnswer === null || $rawAnswer === '' ? [] : [(string) $rawAnswer]);
+
+        foreach ($answers as $answer) {
+            if (! array_key_exists($answer, $optionScores)) {
+                throw new \InvalidArgumentException("Assessment answer is invalid for field {$field->id}.");
+            }
+            $score += $optionScores[$answer];
+        }
+
+        return [$score, $maxScore];
+    }
+
+    /**
      * Build a structured array of headers + rows suitable for CSV export.
      */
     public function getExportData(Form $form, ?int $doctorId = null, array $filters = []): array
     {
-        $query = FormResponse::with(['values', 'assignedDoctor'])
+        $query = FormResponse::with(['values.field.options', 'assignedDoctor'])
             ->where('form_id', $form->id);
 
         $doctorId ??= ! empty($filters['doctor_id']) ? (int) $filters['doctor_id'] : null;
@@ -186,7 +253,7 @@ class FormResponseService
 
             foreach ($fields as $field) {
                 $val   = $response->values->firstWhere('field_id', $field->id);
-                $row[] = $val ? $val->getDisplayValue() : '';
+                $row[] = $val ? $val->getExportDisplayValue() : '';
             }
 
             $rows[] = $row;
@@ -197,7 +264,7 @@ class FormResponseService
 
     public function getFilteredExportData(?int $formId = null, ?int $doctorId = null, array $filters = []): array
     {
-        $query = FormResponse::with(['form.fields', 'values', 'assignedDoctor'])->latest('submitted_at');
+        $query = FormResponse::with(['form.fields', 'values.field.options', 'assignedDoctor'])->latest('submitted_at');
 
         if ($formId) {
             $query->where('form_id', $formId);
@@ -245,7 +312,7 @@ class FormResponseService
             $row = [$response->id, $response->form?->title ?? 'N/A', $response->submitted_at?->format('Y-m-d H:i:s'), $response->assignedDoctor?->name ?? 'N/A', $response->submitted_by_name ?? 'Anonymous'];
             foreach ($fields as $field) {
                 $value = $response->values->firstWhere('field_id', $field->id);
-                $row[] = $value ? $value->getDisplayValue() : '';
+                $row[] = $value ? $value->getExportDisplayValue() : '';
             }
             return $row;
         })->all();

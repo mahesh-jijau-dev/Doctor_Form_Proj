@@ -250,9 +250,187 @@ class FormSeeder extends Seeder
             }
         }
 
+        // FORM 7: Intellectual Health Assessment
+        $intellectualHealthForm = Form::firstOrCreate(
+            ['title' => 'FORM 7: Intellectual Health Assessment'],
+            [
+                'description' => 'Select the option that best describes your cognitive habits and abilities. Higher scores indicate less intellectual stimulation or concerns worth reflecting on. This self-assessment is not a medical diagnosis.',
+                'status' => 'published',
+                'created_by' => $admin->id,
+                'submit_button_text' => 'Submit Assessment',
+                'confirmation_message' => 'Thank you for completing this self-assessment.',
+                'settings' => [
+                    'show_score' => true,
+                    'scoring_mode' => 'weighted_options',
+                ],
+                'is_multi_section' => true,
+                'version' => 1,
+            ]
+        );
+
+        if ($intellectualHealthForm->fields()->count() === 0) {
+            $sections = [
+                [
+                    'title' => 'Section 1: Cognitive Vitality & Memory (Smriti & Dhriti)',
+                    'questions' => [
+                        [
+                            'Have you noticed any decline in your ability to concentrate, focus, or follow complex conversations?',
+                            ['No / Never', 'Occasionally', 'Frequently', 'Constantly'],
+                        ],
+                        [
+                            'Do you find yourself forgetting important dates, daily tasks, or recently learned information?',
+                            ['Rarely or never', 'Occasionally', 'Frequently', 'Constantly'],
+                        ],
+                        [
+                            'Do you feel that your overall intellectual abilities or memory have declined over the past year?',
+                            ['No, they have improved', 'No change', 'Yes, declined somewhat', 'Yes, declined significantly'],
+                        ],
+                        [
+                            'How often do you engage in activities that require deep, uninterrupted concentration?',
+                            ['Daily', 'Several times a week', 'Occasionally', 'Rarely or never'],
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Section 2: Lifelong Learning & Curiosity (Dhi)',
+                    'questions' => [
+                        [
+                            'How often do you actively seek out opportunities to learn new skills, languages, or acquire new knowledge?',
+                            ['Regularly', 'Occasionally', 'Rarely', 'Never'],
+                        ],
+                        [
+                            'How often do you read books, articles, or research materials outside of your usual interests or daily routine?',
+                            ['Daily', 'Several times a week', 'Occasionally', 'Rarely or never'],
+                        ],
+                        [
+                            'When confronted with an opposing viewpoint, how often do you actively listen or challenge your own beliefs?',
+                            ['Frequently', 'Occasionally', 'Rarely', 'Never'],
+                        ],
+                        [
+                            'How often do you engage in mentally stimulating activities such as puzzles, strategic games, or creative writing?',
+                            ['Daily', 'Several times a week', 'Occasionally', 'Rarely or never'],
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Section 3: Problem Solving & Critical Thinking',
+                    'questions' => [
+                        [
+                            'How would you rate your current ability to analyze data and solve complex, unexpected problems?',
+                            ['Excellent', 'Good', 'Fair', 'Poor'],
+                        ],
+                        [
+                            'Do you actively seek out opportunities to learn from your mistakes or analyze your past failures?',
+                            ['Yes, regularly', 'Occasionally', 'Rarely', 'No, never'],
+                        ],
+                        [
+                            'How often do you engage in discussions or debates that require critical, abstract thinking?',
+                            ['Frequently', 'Occasionally', 'Rarely', 'Never'],
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Section 4: Lifestyle & Environment',
+                    'questions' => [
+                        [
+                            'Do you feel your current daily environment (work, college, or home) adequately challenges you intellectually?',
+                            ['Yes, appropriately challenged', 'Yes, but could achieve more', 'No, feeling stagnant', 'No, completely unfulfilled'],
+                        ],
+                        [
+                            'How would you rate your typical sleep quality, which is vital for cognitive function and memory consolidation?',
+                            ['Excellent / Restorative', 'Good', 'Fair / Disturbed', 'Poor / Deprived'],
+                        ],
+                        [
+                            'How often do high stress levels negatively impact your ability to think clearly or make rational decisions?',
+                            ['Rarely or never', 'Occasionally', 'Frequently', 'Constantly'],
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Section 5: Manasika Guna (Quality of Mind & Intellect)',
+                    'description' => 'This section uses a Guna-inspired interpretation for self-reflection. Sattva, Rajas, and Tamas are qualities of mind, not doshas.',
+                    'questions' => [
+                        [
+                            'Processing Information (Dhi): How do you typically react when trying to understand a difficult or complex concept?',
+                            [
+                                'Calmly study until I understand it (Sattva)',
+                                'Put in intense, sometimes stressful effort (Rajas)',
+                                'Get restless and frequently switch tasks (High Rajas)',
+                                'Give up quickly, feeling it is too difficult (Tamas)',
+                            ],
+                        ],
+                        [
+                            'Mental Control & Patience (Dhriti): When working on an intellectual task, how easily are you distracted by external stimuli or emotions?',
+                            [
+                                'Rarely; my focus is steady and grounded',
+                                'Occasionally; I get distracted but pull myself back',
+                                'Frequently; my mind wanders to multiple thoughts',
+                                'Constantly; I feel dull, drowsy, or unmotivated',
+                            ],
+                        ],
+                        [
+                            'Memory Recall (Smriti): When you need to recall previously learned information during an exam or discussion, how does your mind function?',
+                            [
+                                'Clear, accurate, and effortless recall',
+                                'Mostly accurate, but requires effort or prompting',
+                                'Jumbled, anxious, or recalling incorrect details',
+                                'Complete blankness, confusion, or forgetfulness',
+                            ],
+                        ],
+                        [
+                            'Approach to Knowledge: What is your primary internal motivation for learning and seeking intellectual growth?',
+                            [
+                                'For truth, self-improvement, and helping others',
+                                'For career advancement and social recognition',
+                                'Driven by competition, pressure, or fear of failure',
+                                'I have no desire to learn; it feels like a burden',
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+
+            $orderIndex = 0;
+            foreach ($sections as $section) {
+                $intellectualHealthForm->fields()->create([
+                    'type' => 'section_header',
+                    'label' => $section['title'],
+                    'description' => $section['description'] ?? null,
+                    'is_required' => false,
+                    'order_index' => $orderIndex++,
+                ]);
+
+                foreach ($section['questions'] as [$question, $labels]) {
+                    $field = $intellectualHealthForm->fields()->create([
+                        'type' => 'multiple_choice',
+                        'label' => $question,
+                        'description' => 'Choose one answer.',
+                        'is_required' => true,
+                        'order_index' => $orderIndex++,
+                        'settings' => ['assessment_scored' => true],
+                    ]);
+
+                    $field->options()->createMany(
+                        collect($labels)->map(fn (string $label, int $score) => [
+                            'label' => $label,
+                            'value' => (string) $score,
+                            'score' => $score,
+                            'order_index' => $score,
+                        ])->all()
+                    );
+                }
+            }
+        }
+
+        foreach ($intellectualHealthForm->fields()->where('settings->assessment_scored', true)->get() as $field) {
+            foreach ($field->options as $option) {
+                $option->update(['score' => $option->order_index]);
+            }
+        }
+
         // Randomize the doctor order, then assign one doctor to each form.
         $randomDoctors = $doctors->shuffle()->values();
-        foreach ([$form1, $form2, $form3, $quizForm] as $index => $form) {
+        foreach ([$form1, $form2, $form3, $quizForm, $intellectualHealthForm] as $index => $form) {
             $doctor = $randomDoctors[$index % $randomDoctors->count()];
 
             FormAssignment::firstOrCreate(
@@ -266,6 +444,6 @@ class FormSeeder extends Seeder
             );
         }
 
-        $this->command->info('3 demo forms and 1 scored quiz created and assigned to active doctors.');
+        $this->command->info('3 demo forms and 2 scored quizzes created and assigned to active doctors.');
     }
 }
