@@ -32,7 +32,7 @@
 </head>
 <body>
     <div class="masthead">
-        <div class="brand">MediForm · Individual Response</div>
+        <div class="brand">Well Being Sutra · Individual Response</div>
         <h1>{{ $response->form?->title ?? 'Response Detail' }}</h1>
         <div class="meta">Response #{{ $response->id }} · Generated {{ $generatedAt->format('M d, Y H:i') }}</div>
     </div>
@@ -86,6 +86,6 @@
         </tbody>
     </table>
 
-    <div class="footer">Confidential medical response data · MediForm</div>
+    <div class="footer">Confidential medical response data · Well Being Sutra</div>
 </body>
 </html>

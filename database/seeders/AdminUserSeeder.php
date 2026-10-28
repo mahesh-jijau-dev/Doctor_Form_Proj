@@ -21,3 +21,4 @@ class AdminUserSeeder extends Seeder
         $this->command->info('Admin user: admin@mediform.com / password');
     }
 }
+ 

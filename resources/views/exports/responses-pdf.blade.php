@@ -35,7 +35,7 @@
 </head>
 <body>
     <div class="masthead">
-        <div class="brand">MediForm · Response Export</div>
+        <div class="brand">Well Being Sutra · Response Export</div>
         <h1>{{ $form->title }}</h1>
         <div class="meta">Generated {{ $generatedAt->format('M d, Y H:i') }}</div>
     </div>
@@ -80,6 +80,6 @@
         <div class="empty">No responses are available for this form.</div>
     @endif
 
-    <div class="footer">Confidential medical response data · MediForm</div>
+    <div class="footer">Confidential medical response data · Well Being Sutra</div>
 </body>
 </html>

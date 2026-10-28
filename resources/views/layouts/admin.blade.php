@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'MediForm') — MediForm</title>
+    <title>@yield('title', 'Well Being Sutra') — Well Being Sutra</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
@@ -23,10 +23,11 @@
                :class="sidebarOpen ? 'w-56 app-sidebar-open' : 'w-0 overflow-hidden app-sidebar-closed'">
             <!-- Logo -->
             <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-                <div class="w-8 h-8 bg-theme-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-heart-pulse text-white text-sm"></i>
+                <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.35)] ring-1 ring-white/80">
+                    <img src="{{ asset('Well Being Sutra logo.png') }}" alt="Well Being Sutra"
+                         class="w-full h-full object-contain">
                 </div>
-                <span class="text-white font-bold text-lg tracking-tight">MediForm</span>
+                <span class="text-white font-bold text-sm tracking-tight whitespace-nowrap">Well Being Sutra</span>
             </div>
 
             <!-- Nav -->

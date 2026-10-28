@@ -4,8 +4,10 @@
 <div class="login-layout">
     <section class="login-aside" aria-label="MediForm information">
         <div class="login-brand">
-            <span class="login-brand-icon"><i class="fas fa-heart-pulse" aria-hidden="true"></i></span>
-            <span>MediForm</span>
+            <span class="login-brand-icon" style="background-color: #fff;">
+                <img src="{{ asset('Well Being Sutra logo.png') }}" alt="">
+            </span>
+            <span>Well Being Sutra</span>
         </div>
 
         <div class="login-aside-copy">
@@ -27,7 +29,7 @@
             <div class="login-heading">
                 <span class="login-heading-icon"><i class="fas fa-user-doctor" aria-hidden="true"></i></span>
                 <p class="login-kicker">Welcome back</p>
-                <h2 id="login-heading">Sign in to MediForm</h2>
+                <h2 id="login-heading">Sign in to Well Being Sutra</h2>
                 <p>Enter your details to access your account.</p>
             </div>
 
@@ -87,7 +89,7 @@
             </div>
         </form>
 
-            <p class="login-copyright">&copy; {{ date('Y') }} MediForm. All rights reserved.</p>
+            <p class="login-copyright">&copy; {{ date('Y') }} Well Being Sutra. All rights reserved.</p>
         </div>
     </section>
 </div>

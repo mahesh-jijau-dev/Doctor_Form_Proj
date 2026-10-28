@@ -2,8 +2,10 @@
     <div class="site-loader-progress" aria-hidden="true"></div>
     <div class="site-loader-panel">
         <div class="site-loader-brand">
-            <span class="site-loader-brand-mark"><i class="fas fa-heart-pulse"></i></span>
-            <span>MediForm</span>
+            <span class="site-loader-brand-mark" style="background-color: #fff;">
+                <img src="{{ asset('Well Being Sutra logo.png') }}" alt="">
+            </span>
+            <span>Well Being Sutra</span>
         </div>
         <div class="site-loader-status">
             <span class="site-loader-spinner" aria-hidden="true"></span>

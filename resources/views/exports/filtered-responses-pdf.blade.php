@@ -25,7 +25,7 @@
     </style>
 </head>
 <body>
-    <div class="masthead"><div class="brand">MediForm · Filtered Response Export</div><h1>Responses</h1><div class="meta">Generated {{ now()->format('M d, Y H:i') }}</div></div>
+    <div class="masthead"><div class="brand">Well Being Sutra · Filtered Response Export</div><h1>Responses</h1><div class="meta">Generated {{ now()->format('M d, Y H:i') }}</div></div>
     <table class="summary"><tr>
         <td><div class="summary-label">Total Responses</div><div class="summary-value">{{ count($exportData['rows']) }}</div></td>
         <td><div class="summary-label">Forms</div><div class="summary-value">{{ count(collect($exportData['rows'])->pluck(1)->unique()) }}</div></td>
@@ -36,6 +36,6 @@
             @foreach($exportData['rows'] as $row)<tr>@foreach($row as $value)<td>{{ is_array($value) ? implode(', ', $value) : ($value ?: '-') }}</td>@endforeach</tr>@endforeach
         </tbody></table>
     @else <div class="empty">No responses match the selected filters.</div> @endif
-    <div class="footer">Confidential medical response data · MediForm</div>
+    <div class="footer">Confidential medical response data · Well Being Sutra</div>
 </body>
 </html>
