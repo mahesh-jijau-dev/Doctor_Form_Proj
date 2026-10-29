@@ -16,7 +16,8 @@
 <body class="bg-theme-bg text-theme-text min-h-screen antialiased">
     @include('components.site-loader')
     <div class="public-form-page">
-        <div class="public-form-shell" x-data="publicFormState()">
+        <div class="public-form-shell" x-data="publicFormState()"
+            x-init="if (invalidFieldId) $nextTick(() => $el.querySelector(`[data-field-id='${invalidFieldId}']`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))">
             <div class="public-form-header">
                 <div class="public-form-header-inner">
                     <div>
@@ -60,7 +61,7 @@
             @endphp
 
             <form method="POST" action="{{ route('forms.public.submit', $form) }}" enctype="multipart/form-data"
-                class="public-form-body" novalidate>
+                class="public-form-body" novalidate @input="clearValidationError()" @change="clearValidationError()">
                 @csrf
 
                 <div class="public-meta-row" x-show="!multiSection || currentSection === 0">
@@ -102,6 +103,11 @@
                     @endphp
 
                     <div class="public-question-block"
+                        data-field-id="{{ $field->id }}"
+                        data-field-label="{{ $field->label }}"
+                        data-section-index="{{ $fieldSection }}"
+                        data-required="{{ $field->is_required ? 'true' : 'false' }}"
+                        :class="{ 'is-invalid': invalidFieldId === {{ $field->id }} }"
                         x-show="(!multiSection || currentSection === {{ $fieldSection }}) && visible[{{ $field->id }}] !== false"
                         x-init="register({{ $field->id }}, {{ json_encode($conditions) }})" style="display: none">
 
@@ -260,6 +266,10 @@
                         </div>
                     </div>
                 @endif
+                <div class="public-form-alert" x-show="clientError" x-cloak>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p x-text="clientError"></p>
+                </div>
 
                 <div class="public-submit-row">
                     <button type="button" class="public-submit-button" x-show="multiSection && currentSection > 0"
@@ -285,21 +295,51 @@
                 multiSection: @json((bool) $form->is_multi_section),
                 sectionCount: {{ $sectionCount }},
                 currentSection: {{ $errorSection }},
+                invalidFieldId: @json($errorField?->id),
+                clientError: '',
                 hasNavigated: false,
                 values: {},
                 conditions: {},
                 visible: {},
                 nextSection() {
-                    this.hasNavigated = true;
-                    if (this.currentSection < this.sectionCount - 1) {
-                        this.currentSection++;
+                    this.clearValidationError();
+                    const missingField = Array.from(this.$el.querySelectorAll(
+                        `.public-question-block[data-section-index="${this.currentSection}"][data-required="true"]`
+                    )).find((block) => {
+                        const fieldId = Number(block.dataset.fieldId);
+                        if (this.visible[fieldId] === false || block.offsetParent === null) return false;
+
+                        const controls = Array.from(block.querySelectorAll('input:not([type="hidden"]), textarea, select'));
+                        if (controls.length === 0) return false;
+
+                        if (controls.some((control) => control.type === 'radio' || control.type === 'checkbox')) {
+                            return !controls.some((control) => control.checked);
+                        }
+
+                        return controls.some((control) => !control.value.trim());
+                    });
+
+                    if (missingField) {
+                        this.invalidFieldId = Number(missingField.dataset.fieldId);
+                        this.clientError = `${missingField.dataset.fieldLabel} is required. Please answer it before continuing.`;
+                        missingField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        missingField.querySelector('input, textarea, select')?.focus({ preventScroll: true });
+                        return;
                     }
+
+                    this.hasNavigated = true;
+                    if (this.currentSection < this.sectionCount - 1) this.currentSection++;
                 },
                 previousSection() {
+                    this.clearValidationError();
                     this.hasNavigated = true;
                     if (this.currentSection > 0) {
                         this.currentSection--;
                     }
+                },
+                clearValidationError() {
+                    this.clientError = '';
+                    this.invalidFieldId = null;
                 },
                 register(fieldId, conds) {
                     this.visible[fieldId] = true;

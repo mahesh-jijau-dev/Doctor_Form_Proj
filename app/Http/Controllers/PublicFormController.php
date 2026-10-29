@@ -7,12 +7,11 @@ use App\Models\FormResponse;
 use App\Services\FormResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class PublicFormController extends Controller
 {
-    public function __construct(private readonly FormResponseService $responseService)
-    {
-    }
+    public function __construct(private readonly FormResponseService $responseService) {}
 
     public function index()
     {
@@ -50,7 +49,14 @@ class PublicFormController extends Controller
         $rules = $this->buildValidationRules($form, $request);
 
         if (! empty($rules)) {
-            $validator = Validator::make($request->all(), $rules);
+            $messages = [];
+            foreach ($form->fields as $field) {
+                if ($field->is_required) {
+                    $messages['field_'.$field->id.'.required'] = 'Please answer this question.';
+                }
+            }
+
+            $validator = Validator::make($request->all(), $rules, $messages);
             if ($validator->fails()) {
                 return back()->withErrors($validator)->withInput();
             }
@@ -70,7 +76,7 @@ class PublicFormController extends Controller
                 continue;
             }
 
-            $fieldName = 'field_' . $field->id;
+            $fieldName = 'field_'.$field->id;
             $fieldRules = [];
 
             if ($field->is_required) {
@@ -95,10 +101,10 @@ class PublicFormController extends Controller
                     ->all();
                 if ($field->type === 'checkbox') {
                     $fieldRules[] = 'array';
-                    $rules[$fieldName . '.*'] = ['in:' . implode(',', $validValues)];
+                    $rules[$fieldName.'.*'] = ['in:'.implode(',', $validValues)];
                 } else {
                     $fieldRules[] = 'string';
-                    $fieldRules[] = 'in:' . implode(',', $validValues);
+                    $fieldRules[] = 'in:'.implode(',', $validValues);
                 }
             }
 
@@ -108,27 +114,41 @@ class PublicFormController extends Controller
                 $fieldRules[] = 'max:10240';
             }
 
+            if (data_get($form->settings, 'assessment') && $field->hasOptions()) {
+                $validValues = $field->options
+                    ->map(fn ($option) => (string) ($option->value !== null && $option->value !== '' ? $option->value : $option->label))
+                    ->all();
+
+                $fieldRules[] = $field->type === 'checkbox' ? 'array' : 'nullable';
+                if ($field->type === 'checkbox') {
+                    $rules[$fieldName.'.*'] = [Rule::in($validValues)];
+                } else {
+                    $fieldRules[] = Rule::in($validValues);
+                }
+            }
+
             if (! empty($field->validation_rules) && is_array($field->validation_rules)) {
                 foreach ($field->validation_rules as $key => $value) {
                     if ($key === 'required' && $value) {
                         $fieldRules[] = 'required';
+
                         continue;
                     }
 
                     if ($key === 'min' && is_numeric($value)) {
-                        $fieldRules[] = 'min:' . $value;
+                        $fieldRules[] = 'min:'.$value;
                     }
 
                     if ($key === 'max' && is_numeric($value)) {
-                        $fieldRules[] = 'max:' . $value;
+                        $fieldRules[] = 'max:'.$value;
                     }
 
                     if ($key === 'minLength' && is_numeric($value)) {
-                        $fieldRules[] = 'min:' . $value;
+                        $fieldRules[] = 'min:'.$value;
                     }
 
                     if ($key === 'maxLength' && is_numeric($value)) {
-                        $fieldRules[] = 'max:' . $value;
+                        $fieldRules[] = 'max:'.$value;
                     }
                 }
             }
@@ -144,7 +164,7 @@ class PublicFormController extends Controller
     private function isFieldVisible($field, Form $form, Request $request): bool
     {
         foreach ($field->conditions as $condition) {
-            $value = $request->input('field_' . $condition->condition_field_id, '');
+            $value = $request->input('field_'.$condition->condition_field_id, '');
             $valueString = is_array($value) ? implode(',', $value) : (string) $value;
             $conditionValue = (string) $condition->condition_value;
 

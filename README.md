@@ -57,3 +57,19 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Assessment scoring
+
+Assessment forms use the existing `forms.settings` JSON and response `metadata`; no extra database migration is needed. A form can set `settings.assessment.type` to one of:
+
+- `score_bands` for a total score, section/group subtotals and configured inclusive score bands.
+- `guna_majority` to count option values into categories and report a winner, tie, or balanced result.
+- `prakriti_vpk` to report category counts and percentages, applying configured balance and dual-category tolerances.
+- `prakriti_ksa` to report balanced, mixed, or dominant categories from configured tolerances.
+- `dhatu_sarata` to report each group independently, classify its score (0–2 Avara, 3–4 Madhya, 5–6 Pravara), and optionally record its current condition.
+
+Set scored options on each question and add `assessment_section` or `assessment_group` to the field's JSON settings to enable subtotals. Category-based forms configure `category_map`; category tallies can also be grouped by `assessment_section`. Dhatu condition fields additionally use `assessment_current_condition` and `condition_map`. Each saved response keeps a snapshot of totals and interpretation in `metadata.assessment_result`, which is shown in response details and individual or aggregate CSV/PDF exports. Category-count assessments report classifications and tallies rather than numeric point totals; score columns are reserved for assessments where points are meaningful. The public confirmation page displays results only when `settings.show_score` is enabled.
+
+The seeded Intellectual Health Assessment (Form 7) demonstrates the score-band setup. Score cutoffs and assessment wording should be reviewed by the form owner or a qualified healthcare professional before publishing; these results are screening/self-assessment information and not diagnoses.
+
+The eight questionnaire definitions are seeded by `AssessmentFormsSeeder` (also called by `DatabaseSeeder`). Run `php artisan db:seed` after migrations to create or synchronize those forms. The seeder does not create fictional patient responses.

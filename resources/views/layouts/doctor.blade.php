@@ -148,7 +148,7 @@
             @endif
 
             <!-- Page content -->
-            <main class="app-main flex-1 p-6">
+            <main class="app-main flex-1 p-6 @yield('main-class')">
                 @yield('content')
             </main>
         </div>

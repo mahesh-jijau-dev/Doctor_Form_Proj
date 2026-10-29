@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 class FormResponseService
 {
+    public function __construct(private readonly AssessmentScoringService $assessmentScoringService) {}
+
     /**
      * Store a complete form response along with all field values.
      */
@@ -20,19 +22,29 @@ class FormResponseService
     {
         return DB::transaction(function () use ($form, $data, $request, $doctorId) {
             [$quizScore, $quizMaxScore] = $this->calculateQuizScore($form, $data);
+            $assessmentResult = $this->assessmentScoringService->calculate($form, $data);
+
+            if ($assessmentResult !== null && ($assessmentResult['score_is_meaningful'] ?? true)) {
+                $quizScore = (float) $assessmentResult['total_score'];
+                $quizMaxScore = (float) $assessmentResult['max_score'];
+            } elseif ($assessmentResult !== null) {
+                $quizScore = 0.0;
+                $quizMaxScore = 0.0;
+            }
 
             $response = FormResponse::create([
-                'form_id'             => $form->id,
-                'form_version'        => $form->version,
-                'assigned_doctor_id'  => $doctorId,
-                'submitted_by_name'   => $data['_name'] ?? null,
-                'submitted_by_email'  => $data['_email'] ?? null,
-                'ip_address'          => $request->ip(),
-                'user_agent'          => $request->userAgent(),
-                'submitted_at'        => now(),
-                'is_complete'         => true,
-                'quiz_score'          => $quizMaxScore > 0 ? $quizScore : null,
-                'quiz_max_score'      => $quizMaxScore > 0 ? $quizMaxScore : null,
+                'form_id' => $form->id,
+                'form_version' => $form->version,
+                'assigned_doctor_id' => $doctorId,
+                'submitted_by_name' => $data['_name'] ?? null,
+                'submitted_by_email' => $data['_email'] ?? null,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'submitted_at' => now(),
+                'is_complete' => true,
+                'metadata' => $assessmentResult === null ? null : ['assessment_result' => $assessmentResult],
+                'quiz_score' => $quizMaxScore > 0 ? $quizScore : null,
+                'quiz_max_score' => $quizMaxScore > 0 ? $quizMaxScore : null,
             ]);
 
             $fields = $form->fields()->with('options')->get();
@@ -43,31 +55,31 @@ class FormResponseService
                     continue;
                 }
 
-                $fieldKey = 'field_' . $field->id;
+                $fieldKey = 'field_'.$field->id;
                 $rawValue = $data[$fieldKey] ?? null;
 
                 $valueData = [
                     'response_id' => $response->id,
-                    'field_id'    => $field->id,
+                    'field_id' => $field->id,
                     'field_label' => $field->label,
-                    'field_type'  => $field->type,
+                    'field_type' => $field->type,
                 ];
 
                 if ($field->type === 'file' && $request->hasFile($fieldKey)) {
                     $file = $request->file($fieldKey);
-                    $directory = 'uploads/responses/' . Str::slug($form->title) . '/response-' . $response->id;
+                    $directory = 'uploads/responses/'.Str::slug($form->title).'/response-'.$response->id;
                     $directoryPath = public_path($directory);
                     File::ensureDirectoryExists($directoryPath);
 
                     $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                     $extension = strtolower($file->getClientOriginalExtension());
                     $filename = (Str::slug($originalName) ?: 'upload')
-                        . '-field-' . $field->id
-                        . '-' . Str::lower(Str::random(8))
-                        . '.' . $extension;
+                        .'-field-'.$field->id
+                        .'-'.Str::lower(Str::random(8))
+                        .'.'.$extension;
 
                     $file->move($directoryPath, $filename);
-                    $valueData['file_path'] = $directory . '/' . $filename;
+                    $valueData['file_path'] = $directory.'/'.$filename;
                     $valueData['file_original_name'] = $file->getClientOriginalName();
                 } elseif (is_array($rawValue)) {
                     $valueData['values'] = $rawValue;
@@ -107,6 +119,7 @@ class FormResponseService
                 [$fieldScore, $fieldMaxScore] = $this->calculateOptionScore($field, $data, $assessmentScored);
                 $score += $fieldScore;
                 $maxScore += $fieldMaxScore;
+
                 continue;
             }
 
@@ -129,7 +142,7 @@ class FormResponseService
             }
 
             $maxScore += $points;
-            $rawAnswer = $data['field_' . $field->id] ?? null;
+            $rawAnswer = $data['field_'.$field->id] ?? null;
             $answers = is_array($rawAnswer)
                 ? $rawAnswer
                 : ($rawAnswer === null || $rawAnswer === '' ? [] : [$rawAnswer]);
@@ -186,7 +199,7 @@ class FormResponseService
             $maxScore = max($optionScores);
         }
 
-        $rawAnswer = $data['field_' . $field->id] ?? null;
+        $rawAnswer = $data['field_'.$field->id] ?? null;
         $answers = is_array($rawAnswer)
             ? array_values(array_unique(array_map('strval', $rawAnswer)))
             : ($rawAnswer === null || $rawAnswer === '' ? [] : [(string) $rawAnswer]);
@@ -238,7 +251,7 @@ class FormResponseService
             ->whereNotIn('type', ['section_header', 'heading', 'description', 'image'])
             ->get();
 
-        $headers = ['ID', 'Submitted At', 'Doctor'];
+        $headers = ['ID', 'Submitted At', 'Doctor', 'Assessment Score', 'Assessment Result', 'Assessment Categories'];
         foreach ($fields as $field) {
             $headers[] = $field->label;
         }
@@ -249,10 +262,17 @@ class FormResponseService
                 $response->id,
                 $response->submitted_at?->format('Y-m-d H:i:s'),
                 $response->assignedDoctor?->name ?? 'N/A',
+                $this->hasMeaningfulScore($response)
+                    ? $response->quiz_score.' / '.$response->quiz_max_score
+                    : '',
+                data_get($response->assessment_result, 'result.title')
+                    ?? $response->quiz_interpretation['title']
+                    ?? '',
+                $this->assessmentCategorySummary($response),
             ];
 
             foreach ($fields as $field) {
-                $val   = $response->values->firstWhere('field_id', $field->id);
+                $val = $response->values->firstWhere('field_id', $field->id);
                 $row[] = $val ? $val->getExportDisplayValue() : '';
             }
 
@@ -303,20 +323,59 @@ class FormResponseService
             ->whereNotIn('type', ['section_header', 'heading', 'description', 'image'])
             ->unique('id')->values();
 
-        $headers = ['ID', 'Form', 'Submitted At', 'Doctor', 'Patient'];
+        $headers = ['ID', 'Form', 'Submitted At', 'Doctor', 'Patient', 'Assessment Score', 'Assessment Result', 'Assessment Categories'];
         foreach ($fields as $field) {
             $headers[] = $field->label;
         }
 
         $rows = $responses->map(function ($response) use ($fields) {
-            $row = [$response->id, $response->form?->title ?? 'N/A', $response->submitted_at?->format('Y-m-d H:i:s'), $response->assignedDoctor?->name ?? 'N/A', $response->submitted_by_name ?? 'Anonymous'];
+            $row = [
+                $response->id,
+                $response->form?->title ?? 'N/A',
+                $response->submitted_at?->format('Y-m-d H:i:s'),
+                $response->assignedDoctor?->name ?? 'N/A',
+                $response->submitted_by_name ?? 'Anonymous',
+                $this->hasMeaningfulScore($response) ? $response->quiz_score.' / '.$response->quiz_max_score : '',
+                data_get($response->assessment_result, 'result.title')
+                    ?? $response->quiz_interpretation['title']
+                    ?? '',
+                $this->assessmentCategorySummary($response),
+            ];
             foreach ($fields as $field) {
                 $value = $response->values->firstWhere('field_id', $field->id);
                 $row[] = $value ? $value->getExportDisplayValue() : '';
             }
+
             return $row;
         })->all();
 
         return compact('headers', 'rows');
+    }
+
+    private function hasMeaningfulScore(FormResponse $response): bool
+    {
+        return $response->quiz_max_score > 0
+            && ($response->assessment_result['score_is_meaningful'] ?? true);
+    }
+
+    private function assessmentCategorySummary(FormResponse $response): string
+    {
+        $sections = $response->assessment_result['section_categories'] ?? [];
+
+        if ($sections === []) {
+            return collect($response->assessment_result['categories'] ?? [])
+                ->map(fn (int $count, string $category): string => ucfirst(str_replace('_', ' ', $category)).': '.$count)
+                ->implode(', ');
+        }
+
+        return collect($sections)
+            ->map(function (array $section): string {
+                $categories = collect($section['categories'] ?? [])
+                    ->map(fn (array $category): string => $category['label'].': '.$category['count'])
+                    ->implode(', ');
+
+                return $section['label'].': '.$categories;
+            })
+            ->implode('; ');
     }
 }

@@ -93,8 +93,10 @@ class FormBuilderService
             }
 
             $settings = $fieldData['settings'] ?? [];
-            if (data_get($field->settings, 'assessment_scored')) {
-                $settings['assessment_scored'] = true;
+            foreach (['assessment_scored', 'assessment_section', 'assessment_group', 'assessment_current_condition', 'assessment_max'] as $assessmentSetting) {
+                if (array_key_exists($assessmentSetting, $field->settings ?? [])) {
+                    $settings[$assessmentSetting] = $field->settings[$assessmentSetting];
+                }
             }
 
             $field->fill([

@@ -13,6 +13,24 @@ use App\Models\FormAssignment;
 
 class FormSeeder extends Seeder
 {
+    private const FORM_7_ASSESSMENT = [
+        'type' => 'score_bands',
+        'max_score' => 54,
+        'sections' => [
+            'cognitive_memory' => 'Cognitive Vitality & Memory',
+            'learning_curiosity' => 'Lifelong Learning & Curiosity',
+            'problem_solving' => 'Problem Solving & Critical Thinking',
+            'lifestyle_environment' => 'Lifestyle & Environment',
+            'manasika_guna' => 'Manasika Guna',
+        ],
+        'bands' => [
+            ['min' => 0, 'max' => 11, 'range' => '0–11', 'title' => 'Sattva dominant (optimal)', 'summary' => 'High cognitive vitality and clear, focused thinking.'],
+            ['min' => 12, 'max' => 26, 'range' => '12–26', 'title' => 'Rajasic influence (mild)', 'summary' => 'Good capacity with possible restlessness, overthinking, or occasional distraction.'],
+            ['min' => 27, 'max' => 40, 'range' => '27–40', 'title' => 'High Rajas / early Tamas (moderate)', 'summary' => 'Intellectual turbulence or stress may affect memory and focus.'],
+            ['min' => 41, 'max' => 54, 'range' => '41–54', 'title' => 'Tamas dominant (higher)', 'summary' => 'Lower intellectual engagement or memory concerns may warrant professional support.'],
+        ],
+    ];
+
     public function run(): void
     {
         $admin = User::where('role', 'super_admin')->first();
@@ -262,6 +280,7 @@ class FormSeeder extends Seeder
                 'settings' => [
                     'show_score' => true,
                     'scoring_mode' => 'weighted_options',
+                    'assessment' => self::FORM_7_ASSESSMENT,
                 ],
                 'is_multi_section' => true,
                 'version' => 1,
@@ -391,7 +410,14 @@ class FormSeeder extends Seeder
             ];
 
             $orderIndex = 0;
-            foreach ($sections as $section) {
+            foreach ($sections as $sectionIndex => $section) {
+                $sectionKey = [
+                    'cognitive_memory',
+                    'learning_curiosity',
+                    'problem_solving',
+                    'lifestyle_environment',
+                    'manasika_guna',
+                ][$sectionIndex];
                 $intellectualHealthForm->fields()->create([
                     'type' => 'section_header',
                     'label' => $section['title'],
@@ -407,7 +433,10 @@ class FormSeeder extends Seeder
                         'description' => 'Choose one answer.',
                         'is_required' => true,
                         'order_index' => $orderIndex++,
-                        'settings' => ['assessment_scored' => true],
+                        'settings' => [
+                            'assessment_scored' => true,
+                            'assessment_section' => $sectionKey,
+                        ],
                     ]);
 
                     $field->options()->createMany(
@@ -419,6 +448,29 @@ class FormSeeder extends Seeder
                         ])->all()
                     );
                 }
+            }
+        }
+
+        $settings = $intellectualHealthForm->settings ?? [];
+        $intellectualHealthForm->update([
+            'settings' => array_merge($settings, [
+                'show_score' => true,
+                'scoring_mode' => 'weighted_options',
+                'assessment' => self::FORM_7_ASSESSMENT,
+            ]),
+        ]);
+
+        $sectionKeys = array_keys(self::FORM_7_ASSESSMENT['sections']);
+        $sectionIndex = -1;
+        foreach ($intellectualHealthForm->fields()->orderBy('order_index')->get() as $field) {
+            if ($field->type === 'section_header') {
+                $sectionIndex++;
+                continue;
+            }
+            if (data_get($field->settings, 'assessment_scored') && isset($sectionKeys[$sectionIndex])) {
+                $fieldSettings = $field->settings ?? [];
+                $fieldSettings['assessment_section'] = $sectionKeys[$sectionIndex];
+                $field->update(['settings' => $fieldSettings]);
             }
         }
 

@@ -274,7 +274,7 @@ class QuizScoringTest extends TestCase
         $response->assertOk()
             ->assertSee('Your Assessment Score')
             ->assertSee('Rajasic influence')
-            ->assertSee('13–26')
+            ->assertSee('12–26')
             ->assertSee('not a medical diagnosis');
 
         $this->assertDatabaseHas('form_responses', [
@@ -329,10 +329,11 @@ class QuizScoringTest extends TestCase
     {
         $form = Form::make(['settings' => ['scoring_mode' => 'weighted_options']]);
         $expectedRanges = [
-            0 => '0–12',
-            12 => '0–12',
-            13 => '13–26',
-            26 => '13–26',
+            0 => '0–11',
+            11 => '0–11',
+            12 => '12–26',
+            13 => '12–26',
+            26 => '12–26',
             27 => '27–40',
             40 => '27–40',
             41 => '41–54',

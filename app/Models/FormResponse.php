@@ -46,9 +46,9 @@ class FormResponse extends Model
     protected function casts(): array
     {
         return [
-            'is_complete'  => 'boolean',
+            'is_complete' => 'boolean',
             'submitted_at' => 'datetime',
-            'metadata'     => 'array',
+            'metadata' => 'array',
             'form_version' => 'integer',
             'quiz_score' => 'decimal:2',
             'quiz_max_score' => 'decimal:2',
@@ -88,6 +88,21 @@ class FormResponse extends Model
         return $this->values->firstWhere('field_id', $fieldId);
     }
 
+    public function getAssessmentResultAttribute(): ?array
+    {
+        $result = data_get($this->metadata, 'assessment_result');
+
+        if (! is_array($result)) {
+            return null;
+        }
+
+        if (! array_key_exists('score_is_meaningful', $result)) {
+            $result['score_is_meaningful'] = in_array($result['type'] ?? null, ['score_bands', 'dhatu_sarata'], true);
+        }
+
+        return $result;
+    }
+
     public function getQuizInterpretationAttribute(): ?array
     {
         if (
@@ -100,13 +115,13 @@ class FormResponse extends Model
         $score = (int) $this->quiz_score;
 
         return match (true) {
-            $score <= 12 => [
-                'range' => '0–12',
+            $score <= 11 => [
+                'range' => '0–11',
                 'title' => 'Sattva-dominant range',
                 'summary' => 'Your responses suggest strong cognitive engagement, focus, and learning habits.',
             ],
             $score <= 26 => [
-                'range' => '13–26',
+                'range' => '12–26',
                 'title' => 'Rajasic influence — mild',
                 'summary' => 'Your responses suggest good intellectual capacity, with some restlessness or room to strengthen focus.',
             ],
